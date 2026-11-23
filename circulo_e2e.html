@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Círculo · Modo E2E real</title>
+<style>
+:root{--bg:#0C1320;--bg-2:#111A2B;--panel:#16202F;--line:rgba(234,241,251,0.12);--cyan:#33D1FD;--purple:#A23FFC;--ink:#EDF2FA;--ink-dim:rgba(237,242,250,0.62);--ink-faint:rgba(237,242,250,0.4);--ok:#4ADE80;--warn:#FF9F43;--bad:#FB7185;--grad:linear-gradient(120deg,var(--cyan),var(--purple));}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;padding:20px;line-height:1.5;font-size:14px;}
+h1{font-size:19px;margin:0 0 2px;}
+.sub{color:var(--ink-dim);font-size:12.5px;margin-bottom:16px;}
+button{background:var(--grad);border:none;color:#0c1320;font-weight:700;padding:12px 22px;border-radius:10px;cursor:pointer;font-size:14px;}
+button:disabled{opacity:.4;cursor:not-allowed;}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
+@media(max-width:900px){.cols{grid-template-columns:1fr;}}
+.col h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--purple);margin:0 0 8px;}
+.trace{background:#0a0f1a;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:ui-monospace,monospace;font-size:11px;max-height:70vh;overflow-y:auto;white-space:pre-wrap;}
+.trace .t-ok{color:var(--ok);} .trace .t-warn{color:var(--warn);} .trace .t-bad{color:var(--bad);} .trace .t-dim{color:var(--ink-faint);}
+.product{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto;}
+.product h3{font-size:13px;margin:14px 0 4px;color:var(--cyan);}
+.product .mod{padding:8px 0;border-top:1px solid var(--line);}
+.stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--ink-dim);}
+.stat b{color:var(--ink);}
+.badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:600;}
+.badge.priv{background:rgba(162,63,252,0.15);color:var(--purple);}
+.badge.pub{background:rgba(74,222,128,0.15);color:var(--ok);}
+</style></head><body>
+<h1>Círculo · Modo E2E real</h1>
+<div class="sub">Inyecta 16 slots precargados (educación financiera para inmigrantes) y ejecuta TODO el pipeline contra la API real. Prompts construidos por función (no congelados). Validación pre-vuelo antes de cada llamada.</div>
+<button id="runBtn" onclick="runE2E()">▶ Ejecutar prueba E2E real</button>
+<button id="resumeBtn" onclick="reanudarModulosFaltantes()" style="display:none;margin-left:8px;background:var(--warn);border:none;color:#0c1320;font-weight:700;padding:12px 18px;border-radius:10px;cursor:pointer;font-size:13px;">↻ Reanudar solo módulos faltantes</button>
+<div class="stats" id="stats"></div>
+<div style="margin-top:10px;"><button id="autopsyBtn" onclick="mostrarAutopsia()" style="background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 16px;font-size:12px;" disabled>▽ Autopsia de Arquitectura (debugging)</button></div>
+<div id="autopsyPanel" style="display:none;margin-top:10px;background:#0a0f1a;border:1px solid var(--warn);border-radius:10px;padding:14px;font-family:ui-monospace,monospace;font-size:11px;"></div>
+<div class="cols">
+  <div class="col"><h2>Traza privada (debugging)</h2><div class="trace" id="trace">Listo para ejecutar.</div></div>
+  <div class="col"><h2>Producto + Blueprint (lo que se genera)</h2><div class="product" id="product"><span class="t-dim">Aún sin ejecutar.</span></div></div>
+</div>
+
+<script>
+const MEMORIA = {
+  conocimiento: "Leer el sistema financiero estadounidense con criterio propio, en vez de aplicar las reglas financieras del país de origen que aquí ya no funcionan (o funcionan al revés).",
+  antes: "Recién llegado, toma decisiones de dinero con los reflejos de su país: desconfía de los bancos, guarda efectivo, evita deudas por miedo, no entiende por qué le piden 'historial de crédito' si nunca debió nada.",
+  despues: "Puede leer una decisión financiera estadounidense (abrir crédito, firmar un lease, elegir un plan) y evaluarla con la lógica de ESTE sistema, no con la de su país de origen.",
+  evidencia: "Toma una decisión financiera concreta (ej. abrir su primera tarjeta) entendiendo por qué aquí conviene, aunque en su país fuera lo contrario.",
+  obvio: "Que en EEUU NO tener deuda es un problema (no hay historial), mientras en su país la deuda era peligro puro. Para el experto es obvio; para el recién llegado es contraintuitivo.",
+  errores: "Aplican la regla de su país: 'efectivo es seguridad', 'la deuda es trampa', 'los bancos roban' — y por eso se quedan años sin historial de crédito, pagando más caro todo.",
+  esencia: "1. Reconocer qué regla financiera trae de su país. 2. Entender por qué aquí esa regla falla o se invierte. 3. Reemplazarla por la lógica local, con una primera decisión concreta.",
+  relevancia: "La creencia que debe morir: 'lo que me funcionó con el dinero en mi país me protegerá aquí'. Debe morir porque el sistema de crédito estadounidense premia exactamente lo que en muchos países se evita.",
+  mundo_real: "Está en el mostrador del banco o frente a una aplicación de renta, le piden 'credit score', no tiene ninguno, y siente que hizo todo bien (nunca debió dinero) pero el sistema lo trata como si no existiera. Vergüenza y confusión.",
+  secuencia: "1. Nombrar la regla del país de origen que trae puesta. 2. Ver el caso donde esa regla lo perjudica aquí. 3. Entender la lógica local que la reemplaza. 4. Tomar una primera decisión pequeña con la lógica nueva.",
+  ensayo: "Le dan una decisión financiera real (una oferta de tarjeta) y debe evaluarla dos veces: con la regla de su país y con la de aquí, y notar la diferencia.",
+  prueba_propia: "El momento en que, frente a una decisión real, se detiene y se pregunta '¿estoy decidiendo con las reglas de allá o de aquí?' — y elige conscientemente la de aquí.",
+  escalon: "1. Ver el choque de reglas en un caso ajeno. 2. Identificar sus propias reglas heredadas. 3. Tomar una decisión real con la lógica local.",
+  voz: "'¿Estoy decidiendo con las reglas de allá o las de aquí?'",
+  momento_solo: "Cada vez que enfrenta una decisión financiera nueva en EEUU (crédito, renta, seguro, impuestos).",
+  vida_propia: "Ya no traduce mentalmente desde las reglas de su país: lee el sistema de aquí directamente, con criterio propio."
+};
+
+// ===== PROMPTS DINÁMICOS POR FUNCIÓN CONSTRUCTORA (no strings congelados) =====
+// Cada función recibe objetos reales y ejecuta JSON.stringify EN EL MOMENTO de la llamada.
+// Elimina la arquitectura frágil de placeholders textuales + .replace().
+
+const PROMPT_FIJO = {
+  INFERENCE: "Eres el Motor de Inferencia de Círculo. NO eres el mismo rol que el entrevistador de los 5 estados: tú no conversas ni preguntas. Tu trabajo es RAZONAR en silencio sobre la memoria completa que Círculo ya construyó, y derivar Avatar y Promesa.\n\nLEY DE INVISIBILIDAD: el usuario nunca ve tu razonamiento interno, solo el resultado final. No expliques tu proceso en el texto que el usuario verá.\n\nLEY DE INFERENCIA: nunca inventes algo que no tenga anclaje real en la memoria de Círculo. Si un campo no tiene anclaje, NO lo incluyas en el resultado — es mejor un avatar incompleto que uno inventado.\n\nESTRUCTURA DE CADA DECISIÓN (Decisión Inferida): para cada campo debes producir {\"valor\": \"...\", \"evidencia\": \"cuál(es) de los 16 slots de Círculo sostienen esto, cita el slot exacto\", \"confianza\": \"alta\"|\"baja\"}.\n- \"alta\" SOLO si el valor está directamente anclado en algo que el experto dijo (mundo_real, relevancia, antes, despues, conocimiento, etc.) — no en tu conocimiento general del mundo.\n- \"baja\" si estás extrapolando de tu conocimiento general (ej. \"probablemente tiene 35-45 años\" sin que Círculo lo haya dicho nunca).\n- Si la confianza es \"baja\" en un campo NO estructural (no cambiaría el producto), simplemente OMÍTELO — no lo fuerces.\n- Si la confianza es \"baja\" en un campo que SÍ sería estructural (cambiaría materialmente el contenido/lenguaje/formato si lo supieras), entonces y SOLO entonces pon ese campo en \"pregunta_pendiente\" en vez de inventarlo.\n\nPRUEBA DE ESTRUCTURAL VS COSMÉTICO para cada rasgo candidato: \"si este dato cambiara, ¿cambiaría el contenido, el lenguaje, el formato, la promesa o la experiencia del producto?\" Si sí → puede ser estructural (inclúyelo si tiene anclaje, pregúntalo si no). Si no → es decorativo, ni lo menciones aunque \"suene específico\".\n\nREGLA DEL TIEMPO (aprendida de pruebas previas): Círculo casi nunca captura un plazo explícito. NUNCA inventes un tiempo para la promesa (\"en 7 días\", \"en 1 mes\") a menos que el experto lo haya mencionado literalmente en algún slot. Si no hay evidencia de tiempo, la promesa se construye SIN comprometer plazo.\n\nAVATAR POR CAPAS (incluye solo las que tengan anclaje):\n- identidad_relevante: quién es, solo si el rasgo cambia el producto (ancla típica: mundo_real + relevancia)\n- situacion_actual: qué está viviendo ahora (ancla típica: mundo_real)\n- problema_observable: qué le pasa concretamente (ancla típica: relevancia, antes)\n- nivel_capacidad: qué sabe y qué no (ancla típica: mundo_real — la escena casi siempre revela el nivel)\n- transformacion_buscada: qué quiere lograr (ancla típica: despues)\n- friccion_principal: qué lo detiene (ancla típica: relevancia — la creencia que debe morir)\n\nPROMESA: genera 1 sola promesa final (ya evaluada internamente entre varias candidatas por claridad, especificidad, correspondencia con \"despues\", ausencia de exageración, y uso del lenguaje literal de mundo_real — no le muestres el proceso al usuario). Formato libre, en el idioma del oficio, sin plazo inventado.\n\nResponde SOLO con JSON válido, nada antes del \"{\" ni después del \"}\":\n{\n  \"avatar\": { \"<campo>\": {\"valor\":\"...\", \"evidencia\":\"...\", \"confianza\":\"alta\"} , ... solo campos con confianza alta ... },\n  \"promesa\": {\"valor\":\"...\", \"evidencia\":\"...\"},\n  \"pregunta_pendiente\": \"una sola pregunta puntual al experto, SOLO si algún campo estructural no tiene anclaje. Si no hay ninguna, null.\",\n  \"mensaje_usuario\": \"una frase cálida, breve, que presenta lo que se descubrió — SIN jerga de 'motor de inferencia' ni 'decisión inferida'. Ej: 'Con todo lo que me contaste, esto es lo que veo con claridad de quién es tu alumno y qué le prometes:'\"\n}",
+  FORMA: "Eres el módulo final de Círculo. Tu trabajo es la COHERENCIA GLOBAL: mirar TODAS las evidencias juntas (no módulo por módulo) y decidir la forma del producto completo, y de ahí el medio de cada módulo.\n\nDISTINCIÓN IMPORTANTE:\n- El MEDIO de cada módulo emerge casi solo de su evidencia (si la evidencia es \"identifica 3 masas sin receta\", el medio no puede ser solo texto — necesita imágenes/práctica). Eso lo decides tú directamente, sin preguntar.\n- La FORMA del producto completo (workbook / recorrido guiado con práctica / kit de plantillas / curso en video / híbrido) es una decisión de coherencia: ¿qué contiene todo esto como una sola experiencia, no 5 piezas sueltas? Aquí SÍ puede haber 2 formas legítimas — si las hay, ofrécelas; si solo hay una coherente, decídela y explícala (misma regla que Arquitectura: nunca fabriques opciones falsas).\n\nTambién produces DOS activos distintos (esto es clave):\n1. \"producto_estructura\": el esqueleto del producto que el usuario VENDERÁ — limpio, sin razonamiento interno, con: nombre provisional, forma, y para cada módulo {titulo, medio_recomendado, que_contiene}. IMPORTANTE: esto es el PLAN del producto listo para llenarse de contenido real — NO afirmes que el contenido de cada lección ya está escrito, porque no lo está. Es la estructura terminada, no las lecciones terminadas.\n2. \"blueprint_privado\": el documento estratégico del creador, que NO se vende. Resume el porqué de cada decisión: por qué este avatar, por qué esta promesa, por qué estos módulos en este orden, qué evidencia demuestra cada uno, qué medios. Este es el activo reutilizable para marketing/ads/lanzamientos futuros.\n\nDATOS YA DESCUBIERTOS (única fuente — no inventes nada fuera de esto):\navatar: AVATAR_PH\npromesa: PROMESA_PH\nmodulos_arquitectura: MODULOS_PH\nevidencias: EVIDENCIAS_PH\nmemoria_circulo: SLOTS_PH\n\nResponde SOLO JSON:\n{\n  \"mensaje_usuario\": \"frase cálida de cierre — el usuario acaba de terminar; esto es su recompensa. Sin jerga técnica.\",\n  \"forma_unica\": true,\n  \"forma_recomendada\": {\"nombre\":\"ej. Workbook con práctica guiada\",\"por_que\":\"por qué esta forma es coherente con el conjunto de evidencias\"},\n  \"forma_alternativa\": null,\n  \"producto_estructura\": {\"nombre_provisional\":\"...\",\"forma\":\"...\",\"modulos\":[{\"titulo\":\"...\",\"medio_recomendado\":\"...\",\"que_contiene\":\"...\"}]},\n  \"blueprint_privado\": {\"avatar\":\"...\",\"promesa\":\"...\",\"por_que_este_camino\":\"...\",\"evidencias_clave\":\"...\",\"medios\":\"...\",\"nota_reutilizacion\":\"para qué le servirá este blueprint después (ads, emails, lanzamientos)\"}\n}",
+  DESARROLLO: "Eres el módulo de Desarrollo de Círculo. Desarrollas UN módulo de un producto digital activador (compacto, accionable — no una clase universitaria).\n\nDESCUBRIMIENTO CENTRAL (no lo rompas): la unidad de un módulo NO es \"el texto del módulo\". Es la EXPERIENCIA. Un módulo agrupa las experiencias de aprendizaje que el alumno necesita vivir para producir la evidencia definida. Una experiencia puede ser: una explicación, una analogía, una historia, un ejemplo, una demostración, una práctica, una reflexión, un contraste. NO hay una plantilla fija (no es \"intro + concepto + ejemplo + ejercicio\"). \n\nTU PROCESO (en dos pasos, dentro de tu razonamiento):\n1. Pregúntate PRIMERO: para producir la evidencia de este módulo, ¿qué experiencias EXACTAS necesita vivir este alumno? Elige solo las necesarias — si la evidencia se produce con una sola experiencia, es UNA. Si necesita tres, son tres. El número lo dicta la evidencia, no una plantilla.\n2. LUEGO escribe el contenido de cada experiencia elegida. Cada experiencia debe justificar por qué existe (qué aporta a la evidencia). Si una experiencia no acerca al alumno a la evidencia, no la incluyas.\n\nREGLAS: idioma del oficio (nada académico), coherente con avatar/promesa, compacto (producto activador). El módulo cierra con el ejercicio MÍNIMO que produce la evidencia — si uno más simple la produce igual, usa el más simple.\n\nTERRITORIO (tu lugar en el recorrido — respétalo):\nTERRITORIO_PH\n- Desarrolla SOLO lo que \"este_modulo_debe_lograr\". Las experiencias y el ejercicio deben ser propios de este módulo.\n- CONDICIÓN DE VALIDEZ: si tus experiencias o tu ejercicio podrían pertenecer casi sin cambios al módulo anterior o al siguiente (ver \"no_debe_repetir\" y \"debe_preparar\"), tu desarrollo NO es válido — rehazlo hasta que sea inconfundiblemente de ESTE módulo.\n\nREGLA DE CRITERIO ABIERTO: si el cambio observable consiste en decidir, evaluar, priorizar o actuar con criterio, el ejercicio NO puede prescribir cuál debe ser el resultado. Debe aceptar cualquier decisión defendible que use bien el criterio: actuar, rechazar, comparar, posponer, pedir información o elegir otra alternativa. Se evalúa el RAZONAMIENTO, no la conclusión que el producto prefiera. Nunca escribas un ejercicio cuya respuesta correcta sea una acción única predeterminada.\n\nREGLA DE MATERIAL FACTUAL: puedes crear personajes, escenas y casos compuestos, pero DEBES etiquetarlos como ilustrativos. NO puedes inventar tasas, APR, leyes, estadísticas, características vigentes de productos, límites, requisitos, especificaciones ni afirmaciones operativas verificables. Cuando una experiencia REQUIERE ese material real, escribe un placeholder útil (ej. \"[inserta aquí una oferta de tarjeta real vigente]\") y decláralo en \"materiales_pendientes\". Un módulo puede estar pedagógicamente desarrollado aunque tenga material pendiente.\n\nDATOS (única fuente — no inventes nada fuera de esto):\nmodulo: MODULO_PH\nevidencia_a_producir: EVIDENCIA_PH\navatar: AVATAR_PH\npromesa: PROMESA_PH\nvoz_interior_del_metodo: VOZ_PH\n\nResponde SOLO JSON:\n{\n  \"titulo\": \"...\",\n  \"experiencias\": [ {\"tipo\":\"explicación|analogía|historia|ejemplo|demostración|práctica|reflexión|contraste\",\"para_que\":\"qué aporta a la evidencia — por qué esta experiencia existe\",\"contenido\":\"el texto de esta experiencia, compacto\"} ],\n  \"ejercicio\": {\"consigna\":\"el ejercicio mínimo que produce la evidencia — si es de criterio, admite cualquier decisión defendible\",\"que_demuestra\":\"qué evidencia queda demostrada\"},\n  \"materiales_pendientes\": [ {\"tipo\":\"caso_compuesto|dato_verificable|documento_real|imagen|ejemplo_real\",\"descripcion\":\"...\",\"por_que_se_necesita\":\"...\",\"estado\":\"pendiente_de_creador|pendiente_de_fuente\"} ]\n}",
+  BONUS: "Eres el módulo de Bonus de Círculo. El bonus es el acompañante estratégico del producto — las \"papas fritas\": lo que hace la transformación más fácil o más rápida, no relleno.\n\nREGLA: el bonus responde UNA de dos preguntas, nunca se inventa por creatividad:\n1. ¿Qué obstáculo sigue teniendo el aprendiz INCLUSO después de terminar el producto?\n2. ¿Qué recurso concreto aceleraría más esta transformación?\n\nEl bonus debe ser un recurso concreto y accionable (plantilla, checklist, GPT/prompt especializado, calculadora, hoja de trabajo, guía rápida, mapa mental) — NO otro módulo, NO más contenido teórico. Elige el tipo por necesidad real, anclada en la evidencia y la fricción ya descubiertas.\n\nPropón 1 bonus recomendado (y máximo 1 alternativa solo si hay dos necesidades reales distintas).\n\nDATOS (única fuente): avatar AV, promesa PR, friccion_principal_del_alumno FR, evidencias EV, voz_interior VZ\n\nResponde SOLO JSON:\n{\n  \"mensaje_usuario\":\"frase breve presentando el bonus como acompañante, no como relleno\",\n  \"bonus_recomendado\":{\"tipo\":\"ej. Plantilla / Checklist / GPT\",\"nombre\":\"...\",\"que_resuelve\":\"qué obstáculo posterior o qué acelera\",\"por_que\":\"por qué este y no otro, anclado en la evidencia/fricción\"},\n  \"bonus_alternativo\": null\n}"
+};
+const ARQ_PARTS = ["Eres el módulo de Arquitectura de Círculo. Tu trabajo NO es inventar contenido — es decidir DÓNDE CORTAR el camino que Círculo ya descubrió en piezas de producto (módulos).\n\nREGLA DE ORO (no negociable): \"La arquitectura no crea la transformación. La arquitectura organiza el camino hacia la transformación que Círculo ya descubrió.\" No puedes inventar un módulo cuyo contenido no esté anclado en secuencia, esencia, escalon o prueba_propia.\n\nPara cada módulo de cada arquitectura candidata, produce: {\"titulo\":\"...\", \"funcion_transformadora\":\"qué cambio único logra este módulo, que ningún otro módulo logra\", \"cambio_observable\":\"qué puede hacer o notar el aprendiz al terminar este módulo, que no podía antes\", \"anclaje\":\"a qué slot(s) exactos de Círculo se ata este módulo (secuencia/esencia/escalon/prueba_propia)\"}.\n\nCONDICIÓN DE SALIDA — verifica esto tú mismo antes de responder:\n1. Cada módulo tiene una función transformadora ÚNICA — ningún módulo repite el cambio de otro.\n2. El orden es CAUSAL, no temático: pregúntate para cada módulo \"¿podría el aprendiz hacerlo sin haber hecho el anterior?\" — si la respuesta es sí, el orden está mal.\n3. El ÚLTIMO módulo de cada arquitectura tiene que conducir directamente a la experiencia irreversible ya descubierta (prueba_propia) — no inventes un clímax nuevo, usa el que ya existe.\n\nPREGUNTA CRÍTICA ANTES DE DECIDIR CUÁNTAS ARQUITECTURAS GENERAR (no te la saltes): ¿existe genuinamente una segunda estrategia pedagógica anclada en la evidencia — ej. desmontar la creencia primero vs. victoria práctica primero, recorrido intensivo vs. gradual, aplicación individual vs. en equipo — o secuencia/escalon ya definen un único orden causal defendible? Si solo existe UN camino causal claro (la mayoría de los casos simples), genera SOLO 1 arquitectura marcada \"recomendada\", con \"criterio_diferenciador\": null, y explica en \"justificacion_unica\" por qué no hay una segunda opción legítima. NUNCA fabriques una segunda arquitectura solo para \"dar a elegir\" — eso le devuelve al usuario un trabajo de diseño que Círculo debe resolver solo. Si SÍ existe una bifurcación real, genera 2, y cada una debe traer \"criterio_diferenciador\" describiendo la disyuntiva pedagógica real (no una frase genérica ni \"orden distinto de los mismos módulos\").\n\nEntre 3 y 6 módulos cada arquitectura.\n\nMEMORIA DE CÍRCULO (única fuente permitida — secuencia, esencia, escalon y prueba_propia son las anclas principales; avatar y promesa dan el contexto de para quién es):\n", ")}\n\nResponde SOLO JSON:\n{\n  \"mensaje_usuario\": \"apertura breve y cálida presentando el momento (no jerga técnica de 'arquitectura' o 'módulos causales')\",\n  \"existe_segunda_estrategia_legitima\": true,\n  \"arquitecturas\": [\n    {\"label\":\"Recomendada\",\"resumen\":\"una frase de qué tipo de camino es\",\"criterio_diferenciador\":\"si hay 2, la disyuntiva pedagógica real; si hay 1, null\",\"justificacion_unica\":\"si hay 1 sola, por qué no existe una segunda opción legítima; si hay 2, null\",\"modulos\":[{\"titulo\":\"...\",\"funcion_transformadora\":\"...\",\"cambio_observable\":\"...\",\"anclaje\":\"...\"}]}\n  ]\n}"];
+const EV_PARTS = ["Eres el módulo de Evidencia de Círculo. Para cada módulo de la arquitectura ya elegida, defines QUÉ EVIDENCIA demuestra que el cambio de ese módulo ocurrió de verdad — no qué ejercicio se hace (eso es formato, viene después).\n\nDISTINCIÓN CLAVE (no la rompas): una evidencia es algo que el alumno HACE, PRODUCE o RECONOCE que antes no podía. NO es una actividad (\"haz un quiz\"), es el resultado que demostraría el cambio (\"identifica correctamente 3 masas distintas sin mirar receta\"). El ejercicio que produzca esa evidencia se decide en otra etapa; aquí no lo menciones.\n\nREGLA: la evidencia de cada módulo tiene que corresponder EXACTAMENTE al cambio_observable de ese módulo (que ya está anclado en Círculo). No inventes una evidencia más ambiciosa ni distinta a la que el módulo promete. Si el módulo dice \"el alumno puede X\", la evidencia es la demostración observable de X, ni más ni menos.\n\nPara cada módulo produce: {\"modulo\":\"título del módulo\", \"evidencia\":\"qué hace/produce/reconoce el alumno que demuestra el cambio — observable, concreto\", \"como_se_reconoce\":\"cómo se distingue una evidencia real de una falsa (alguien que 'cree' que aprendió vs. alguien que de verdad puede)\", \"anclaje\":\"qué del módulo/Círculo la sostiene\"}.\n\nLa evidencia del ÚLTIMO módulo debe ser la experiencia irreversible misma (prueba_propia de Círculo) — ahí es donde el alumno deja de depender del experto.\n\nMÓDULOS DE LA ARQUITECTURA ELEGIDA:\n", "\n\nMEMORIA DE CÍRCULO (contexto — prueba_propia y escalon son las anclas principales de evidencia):\n", "\n\nResponde SOLO JSON:\n{\n  \"mensaje_usuario\": \"frase breve y cálida presentando qué es esto — sin jerga de 'evidencia' o 'módulos'\",\n  \"evidencias\": [ {\"modulo\":\"...\",\"evidencia\":\"...\",\"como_se_reconoce\":\"...\",\"anclaje\":\"...\"} ]\n}"];
+
+function buildInferenciaPrompt({ memoria }){
+  return PROMPT_FIJO.INFERENCE + '\n\nMEMORIA:\n' + memoria;
+}
+function buildOpcionesPrompt({ avatar, promesa }){
+  return `Eres el módulo de presentación de Círculo. Tu única fuente son los hechos verificados abajo, NO inventes nada — no agregues duración, edad, ubicación, profesión ni ningún dato que los HECHOS no contengan. Genera 3 formas de presentar el AVATAR (párrafo 2da persona, cada una liderando un hecho anclado distinto) y 3 de la PROMESA (cada una con "porque"). Marca una "recomendada" en cada. HECHOS: ${JSON.stringify({avatar, promesa})}. Responde SOLO JSON: {"avatar_opciones":[{"label":"Recomendada","texto":"..."}],"promesa_opciones":[{"label":"Recomendada","texto":"...","porque":"..."}]}`;
+}
+
+// Auditor INDEPENDIENTE: extrae afirmaciones factuales del texto seleccionado y las traza a los hechos.
+// La reconciliación ya no depende de que Opciones declare — el veredicto viene solo de esta extracción externa.
+function buildAuditorPrompt({ texto, hechosPermitidos }){
+  return `Eres un auditor de afirmaciones factuales. NO juzgas si el texto suena bien, es persuasivo o está bien escrito. Tu ÚNICA tarea: extraer cada afirmación factual verificable sobre la persona que hace el párrafo, y decir si puede trazarse a los HECHOS PERMITIDOS.
+
+QUÉ ES afirmación factual (detéctalas): duración/tiempo ("llevas meses"), edad, país/ciudad, profesión, ingresos, género, nivel educativo, experiencia temporal, estado migratorio, o cualquier detalle verificable sobre la persona.
+QUÉ NO es afirmación factual (IGNÓRALO): metáforas, tono emocional, transiciones narrativas, paráfrasis de un hecho ya permitido, lenguaje persuasivo. Ejemplo: "el sistema no puede leerte" parafrasea "te trata como si no existieras" — NO es un hecho nuevo.
+
+Si el párrafo afirma un dato verificable que NINGÚN hecho permitido establece, va en "no_cubiertas".
+
+PÁRRAFO: ${JSON.stringify(texto)}
+HECHOS PERMITIDOS: ${JSON.stringify(hechosPermitidos)}
+
+Responde SOLO JSON breve: {"afirmaciones_no_cubiertas":[{"afirmacion":"...","tipo":"duracion|edad|ubicacion|identidad|experiencia|otro","razon":"..."}],"valida":true}`;
+}
+function buildArquitecturaPrompt({ slots, avatar, promesa }){
+  // slots es el string de memoria; avatar/promesa objetos. JSON.stringify en el momento.
+  return ARQ_PARTS[0] + JSON.stringify({ slots, avatar, promesa }) + ARQ_PARTS[1];
+}
+function buildEvidenciaPrompt({ modulos, slots }){
+  return EV_PARTS[0] + JSON.stringify(modulos) + EV_PARTS[1] + JSON.stringify(slots) + EV_PARTS[2];
+}
+function buildFormaPrompt({ avatar, promesa, modulos, evidencias, slots }){
+  return PROMPT_FIJO.FORMA
+    .replace('AVATAR_PH', JSON.stringify(avatar))
+    .replace('PROMESA_PH', JSON.stringify(promesa))
+    .replace('MODULOS_PH', JSON.stringify(modulos))
+    .replace('EVIDENCIAS_PH', JSON.stringify(evidencias))
+    .replace('SLOTS_PH', JSON.stringify(slots));
+}
+function buildDesarrolloPrompt({ modulo, evidencia, avatar, promesa, voz, territorio }){
+  return PROMPT_FIJO.DESARROLLO
+    .replace('MODULO_PH', JSON.stringify(modulo))
+    .replace('EVIDENCIA_PH', JSON.stringify(evidencia))
+    .replace('AVATAR_PH', JSON.stringify(avatar))
+    .replace('PROMESA_PH', JSON.stringify(promesa))
+    .replace('VOZ_PH', JSON.stringify(voz))
+    .replace('TERRITORIO_PH', JSON.stringify(territorio||{}));
+}
+// Construye el territorio longitudinal de un módulo: posición, vecinos, y distinción explícita.
+function construirTerritorio(modulos, evidencias, i){
+  const prev = i>0 ? modulos[i-1] : null;
+  const next = i<modulos.length-1 ? modulos[i+1] : null;
+  const evPrev = i>0 ? evidencias[i-1] : null;
+  const evNext = i<modulos.length-1 ? evidencias[i+1] : null;
+  return {
+    posicion: i+1,
+    total: modulos.length,
+    modulo_anterior: prev ? { funcion:prev.funcion_transformadora||prev.que_contiene, evidencia:evPrev?evPrev.evidencia:null } : null,
+    modulo_siguiente: next ? { funcion:next.funcion_transformadora||next.que_contiene, evidencia:evNext?evNext.evidencia:null } : null,
+    este_modulo_debe_lograr: (evidencias[i]||{}).evidencia || modulos[i].cambio_observable || '',
+    no_debe_repetir: prev ? (evPrev?evPrev.evidencia:prev.funcion_transformadora) : 'nada antes',
+    debe_preparar: next ? (evNext?evNext.evidencia:next.funcion_transformadora) : 'este es el cierre'
+  };
+}
+function buildBonusPrompt({ avatar, promesa, friccion, evidencias, voz }){
+  return PROMPT_FIJO.BONUS
+    .replace('AV', JSON.stringify(avatar))
+    .replace('PR', JSON.stringify(promesa))
+    .replace('FR', JSON.stringify(friccion))
+    .replace('EV', JSON.stringify(evidencias))
+    .replace('VZ', JSON.stringify(voz));
+}
+
+// Validación pre-vuelo: ningún prompt final puede contener marcadores de corrupción.
+// Si aparece, aborta ANTES de gastar la llamada y señala cuál prompt está roto.
+function validarPrompt(prompt, etiqueta){
+  const marcadores = ['PLACEHOLDER', '${', 'JSON.stringify(', 'undefined', '[object Object]', '_PH'];
+  const encontrados = marcadores.filter(m => prompt.includes(m));
+  if(encontrados.length){
+    return { ok:false, etiqueta, marcadores:encontrados };
+  }
+  return { ok:true };
+}
+
+
+const rawResults = {};
+let callCount=0, reintentos=0, reconstruidos=0, abortadosPreVuelo=0, t0=0;
+
+function log(msg,cls){ const el=document.getElementById('trace'); const t=((Date.now()-t0)/1000).toFixed(1); el.innerHTML+=`\n<span class="t-${cls||'dim'}">[${t}s] ${msg}</span>`; el.scrollTop=el.scrollHeight; }
+function setStats(){
+  // Métrica inequívoca: por cada etapa con >1 intento, mostrar "N intentos = 1 inicial + (N-1) reintentos".
+  const etapasConReintento = Object.keys(rawResults)
+    .filter(k=>rawResults[k] && rawResults[k].intentos && rawResults[k].intentos.length>1)
+    .map(k=>{ const n=rawResults[k].intentos.length; return `<span class="stat">${k}: <b>${n}</b> intentos = 1 inicial + <b>${n-1}</b> reintento(s)</span>`; }).join('');
+  const totalReintentos = Object.keys(rawResults).reduce((s,k)=>{ const it=rawResults[k]&&rawResults[k].intentos; return s + (it?Math.max(0,it.length-1):0); },0);
+  document.getElementById('stats').innerHTML=
+    `<span class="stat">Requests HTTP: <b>${httpRequests}</b></span>`+
+    `<span class="stat">Etapas invocadas: <b>${callCount}</b></span>`+
+    `<span class="stat">Reintentos adicionales (total): <b>${totalReintentos}</b></span>`+
+    `<span class="stat">Abortos pre-vuelo: <b>${abortadosPreVuelo}</b></span>`+
+    `<span class="stat">Duración: <b>${((Date.now()-t0)/1000).toFixed(1)}s</b></span>`+
+    etapasConReintento;
+}
+
+function priorContextString(){
+  const b=[]; const labels={conocimiento:'La estrella',antes:'Antes',despues:'Después',evidencia:'Evidencia',obvio:'Lo obvio-invisible',errores:'Errores típicos',esencia:'Las 3 esenciales',relevancia:'Creencia que debe morir',mundo_real:'Escena del dolor',secuencia:'Orden del camino',ensayo:'Ensayo sin costo',prueba_propia:'Experiencia irreversible',escalon:'Peldaños',voz:'Voz interior',momento_solo:'Cuándo se activa',vida_propia:'Ya piensa así solo'};
+  Object.keys(labels).forEach(k=>{ if(MEMORIA[k]) b.push(labels[k]+': '+MEMORIA[k]); });
+  return b.join('\n');
+}
+function parseReply(raw){ let t=(raw||'').trim().replace(/```json/gi,'').replace(/```/g,'').trim(); const a=t.indexOf('{'),b=t.lastIndexOf('}'); if(a>=0&&b>a){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e){} } return null; }
+
+// ===== CORRECCIÓN 4: fidelidad factual de Opciones (dos capas + decisión en código) =====
+async function elegirOpcionValida(opciones, hechosPermitidos, tipo){
+  if(!opciones.length) return null;
+  const ordenadas = [...opciones].sort((a,b)=> (/recomendada/i.test(b.label)?1:0)-(/recomendada/i.test(a.label)?1:0) );
+  for(const op of ordenadas){
+    const veredicto = await validarFidelidad(op, hechosPermitidos, tipo);
+    if(veredicto.ok){ if(op!==ordenadas[0]) log(`  ↪ ${tipo}: la recomendada falló fidelidad, se usó una alternativa válida`,'warn'); return op; }
+    log(`  ✗ ${tipo}: opción descartada — ${veredicto.motivo}`,'warn');
+  }
+  return null;
+}
+async function validarFidelidad(opcion, hechosPermitidos, tipo){
+  const texto = opcion.texto||'';
+  let audit;
+  try{ audit = await callAuditor(buildAuditorPrompt({texto, hechosPermitidos})); }catch(e){ audit=null; }
+  if(!audit || typeof audit.valida==='undefined' || !Array.isArray(audit.afirmaciones_no_cubiertas)){
+    return { ok:false, motivo:'auditor sin veredicto válido (degradación segura: no se aprueba)' };
+  }
+  if(audit.afirmaciones_no_cubiertas.length>0){
+    return { ok:false, motivo:'afirmación no anclada: "'+(audit.afirmaciones_no_cubiertas[0].afirmacion||'?')+'" ('+(audit.afirmaciones_no_cubiertas[0].tipo||'?')+')' };
+  }
+  return { ok:true };
+}
+function solapan(a, b){
+  if(!a||!b) return false;
+  if(a===b) return true;
+  const pa=a.split(/\s+/).filter(w=>w.length>3), pb=b.split(/\s+/).filter(w=>w.length>3);
+  const comunes=pa.filter(w=>pb.includes(w)).length;
+  return comunes >= Math.min(2, Math.min(pa.length,pb.length));
+}
+// Modelo del auditor — desacoplado. Idealmente un modelo acotado y barato (ChatGPT sugiere Fable 5).
+// En este entorno usamos Sonnet temporalmente; NO se afirma equivalencia arquitectónica. Cambiar aquí para enrutar.
+const AUDITOR_MODEL = "claude-sonnet-4-6";
+async function callAuditor(system){
+  httpRequests++;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:AUDITOR_MODEL,max_tokens:600,temperature:0,system,messages:[{role:'user',content:'Audita ahora.'}]})});
+    const httpStatus=res.status; const httpOk=res.ok;
+    const data=await res.json();
+    if(!httpOk||data.error){
+      const errType=data.error?.type||'unknown_error';
+      const errMsg=data.error?.message||'(sin mensaje)';
+      log(`✗ auditor: HTTP ${httpStatus} · ${errType} — ${errMsg}`,'bad');
+      return null;
+    }
+    const stopReason=data.stop_reason||null;
+    const usage=data.usage||null;
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    if(!txt&&!data.error){
+      log(`⚠ auditor: HTTP ${httpStatus} OK pero respuesta anómala (sin content, sin error) · stop_reason=${stopReason} · usage=${JSON.stringify(usage)}`,'warn');
+      return null;
+    }
+    return parseReply(txt);
+  }catch(e){ log(`✗ auditor: error de red — ${e.message}`,'bad'); return null; }
+}
+
+// callAPI ahora valida el prompt ANTES de gastar la llamada.
+// Registra CADA intento por separado (para autopsia): prompt, crudo, bloque parseado, error, clasificación.
+let httpRequests=0;
+async function callAPI(system,userMsg,label,maxTokens){
+  const v = validarPrompt(system, label);
+  if(!v.ok){ abortadosPreVuelo++; log(`✗ ${label}: PROMPT CORRUPTO (${v.marcadores.join(', ')}) — abortado ANTES de gastar llamada`,'bad'); rawResults[label]={preflightFail:v.marcadores}; return null; }
+  callCount++;
+  const intentos=[];
+  let attempt=0;
+  while(attempt<2){
+    let registro={intento:attempt+1, promptEnviado:system, respuestaCruda:null, bloqueParseado:null, errorParseo:null, clasificacion:null, parsed:null};
+    try{
+      httpRequests++;
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:maxTokens||1500,system,messages:[{role:'user',content:userMsg}]})});
+      const httpStatus=res.status; const httpOk=res.ok;
+      const data=await res.json();
+      registro.httpStatus=httpStatus; registro.httpOk=httpOk;
+      registro.responseBody=data;
+      registro.apiErrorType=data.error?.type||null;
+      registro.apiErrorMessage=data.error?.message||null;
+      registro.stopReason=data.stop_reason||null;
+      registro.usage=data.usage||null;
+      if(!httpOk||data.error){
+        const errType=data.error?.type||'unknown_error';
+        const errMsg=data.error?.message||'(sin mensaje)';
+        registro.clasificacion=`HTTP ${httpStatus} · ${errType}`;
+        registro.respuestaCruda=null;
+        intentos.push(registro);
+        rawResults[label]={raw:null,parsed:null,intentos};
+        log(`⚠ ${label}: HTTP ${httpStatus} · ${errType} — ${errMsg}, reintento`,'warn');
+        reintentos++; attempt++; continue;
+      }
+      const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      if(!txt){
+        registro.respuestaCruda=null;
+        registro.clasificacion=`HTTP ${httpStatus} OK · respuesta anómala (sin content, sin error) · stop_reason=${registro.stopReason} · usage=${JSON.stringify(registro.usage)}`;
+        intentos.push(registro);
+        rawResults[label]={raw:null,parsed:null,intentos};
+        log(`⚠ ${label}: ${registro.clasificacion}, reintento`,'warn');
+        reintentos++; attempt++; continue;
+      }
+      registro.respuestaCruda=txt;
+      const clean=(txt||'').trim().replace(/```json/gi,'').replace(/```/g,'').trim();
+      const a=clean.indexOf('{'), b=clean.lastIndexOf('}');
+      registro.bloqueParseado = (a>=0&&b>a) ? clean.slice(a,b+1) : null;
+      registro.clasificacion = clasificarRespuesta(txt, clean, a, b);
+      let parsed=null;
+      if(a>=0&&b>a){ try{ parsed=JSON.parse(clean.slice(a,b+1)); }catch(e){ registro.errorParseo=e.message; } }
+      registro.parsed=parsed;
+      intentos.push(registro);
+      rawResults[label]={raw:txt,parsed,intentos};
+      if(!parsed){ log(`⚠ ${label}: no parseable (${registro.clasificacion}), reintento`,'warn'); reintentos++; attempt++; continue; }
+      return parsed;
+    }catch(e){ registro.errorParseo='red: '+e.message; registro.clasificacion='error de red'; intentos.push(registro); rawResults[label]={raw:null,parsed:null,intentos}; log(`⚠ ${label}: error de red (${e.message}), reintento`,'warn'); reintentos++; attempt++; }
+  }
+  log(`✗ ${label}: falló tras reintentos`,'bad');
+  return null;
+}
+
+// Clasifica el fallo de parseo en las categorías de la autopsia.
+function clasificarRespuesta(txt, clean, a, b){
+  if(!txt || !txt.trim()) return 'vacía';
+  if(a<0) return 'sin JSON (texto libre)';
+  const desbalance = (txt.match(/\{/g)||[]).length !== (txt.match(/\}/g)||[]).length;
+  const teniaFences = /```/.test(txt);
+  const teniaTextoAlrededor = (a>0) || (b < clean.length-1);
+  // Hay { de apertura pero no hay } de cierre válido después → truncada
+  if(a>=0 && b<=a) return 'JSON truncado (sin cierre)' + (teniaFences?' (en fences)':'');
+  if(a>=0&&b>a){
+    try{ JSON.parse(clean.slice(a,b+1)); return 'JSON válido' + (teniaFences?' (en fences)':'') + (teniaTextoAlrededor?' (con texto alrededor)':''); }
+    catch(e){ return (desbalance?'JSON truncado/incompleto':'JSON sintácticamente inválido') + (teniaFences?' (en fences)':''); }
+  }
+  return 'estructura no reconocida';
+}
+function esc(s){ return (s==null?'':String(s)).replace(/</g,'&lt;'); }
+
+async function runE2E(){
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('trace').innerHTML='Iniciando…';
+  document.getElementById('product').innerHTML='<span class="t-dim">Generando…</span>';
+  callCount=0;reintentos=0;reconstruidos=0;abortadosPreVuelo=0;t0=Date.now();
+  const P={}; const mem=priorContextString();
+  log('Inyectando 16 slots de Círculo (finanzas para inmigrantes)','ok');
+  log('Memoria: '+mem.split('\n').length+' slots','dim');
+
+  // 1. INFERENCIA
+  log('→ Inferencia','dim');
+  const inf=await callAPI(buildInferenciaPrompt({memoria:mem}),'Genera Avatar y Promesa.','inferencia',1200);
+  if(!inf){ return finalize(P,'inferencia'); }
+  const avatarClean={}; if(inf.avatar) Object.keys(inf.avatar).forEach(k=>{ const f=inf.avatar[k]; if(f&&f.confianza==='alta'&&f.evidencia&&f.valor) avatarClean[k]=f; });
+  P.avatar=avatarClean; P.promesa=inf.promesa;
+  log(`✓ Inferencia: ${Object.keys(avatarClean).length} campos anclados`,'ok');
+
+  // 2. OPCIONES
+  log('→ Opciones','dim');
+  const opc=await callAPI(buildOpcionesPrompt({avatar:P.avatar,promesa:P.promesa}),'Genera las opciones.','opciones',1500);
+  if(!opc){ return finalize(P,'opciones'); }
+  // Corrección 4: validar fidelidad factual de la opción elegida (Capa A declarada + Capa B independiente).
+  P.avatarElegido = await elegirOpcionValida((opc.avatar_opciones||[]), P.avatar, 'avatar');
+  P.promesaElegida = await elegirOpcionValida((opc.promesa_opciones||[]), P.promesa, 'promesa');
+  if(!P.avatarElegido || !P.promesaElegida){
+    log('✗ Ninguna opción pasó la validación de fidelidad factual','bad');
+    return finalize(P,'opciones');
+  }
+  log(`✓ Opciones validadas (fidelidad factual verificada)`,'ok');
+
+  // 3. ARQUITECTURA
+  log('→ Arquitectura','dim');
+  const arq=await callAPI(buildArquitecturaPrompt({slots:mem,avatar:P.avatarElegido,promesa:P.promesaElegida}),'Genera las arquitecturas.','arquitectura',4000);
+  if(!arq||!arq.arquitecturas||!arq.arquitecturas.length){ return finalize(P,'arquitectura'); }
+  P.arquitectura=(arq.arquitecturas.find(a=>/recomendada/i.test(a.label))||arq.arquitecturas[0]);
+  log(`✓ Arquitectura: ${(P.arquitectura.modulos||[]).length} módulos`,'ok');
+
+  // 4. EVIDENCIA
+  log('→ Evidencia','dim');
+  const ev=await callAPI(buildEvidenciaPrompt({modulos:P.arquitectura.modulos,slots:mem}),'Define la evidencia.','evidencia',2000);
+  if(!ev||!ev.evidencias){ return finalize(P,'evidencia'); }
+  P.evidencias=ev.evidencias;
+  log(`✓ Evidencia: ${P.evidencias.length} definidas`,'ok');
+
+  // 5. FORMA
+  log('→ Forma y medios','dim');
+  const forma=await callAPI(buildFormaPrompt({avatar:P.avatarElegido,promesa:P.promesaElegida,modulos:P.arquitectura.modulos,evidencias:P.evidencias,slots:mem}),'Ensambla forma.','forma',4000);
+  if(!forma||!forma.producto_estructura){ return finalize(P,'forma'); }
+  P.forma=forma;
+  log(`✓ Forma: ${forma.forma_recomendada?forma.forma_recomendada.nombre:'?'}`,'ok');
+
+  // 6. DESARROLLO — cada módulo obligatorio debe tener un desarrollo válido.
+  // Se indexa por posición (no push ciego) para saber EXACTAMENTE cuál falta.
+  log('→ Desarrollo de módulos','dim');
+  const nMods = P.forma.producto_estructura.modulos.length;
+  if(!P.desarrollo) P.desarrollo = new Array(nMods).fill(null);
+  await desarrollarPendientes(P);
+
+  // Contrato de completitud: ¿cada módulo tiene desarrollo válido?
+  const faltantes = P.desarrollo.map((d,i)=>d?null:i).filter(i=>i!==null);
+  if(faltantes.length){
+    log(`✗ Faltan ${faltantes.length} módulo(s) por desarrollar: ${faltantes.map(i=>i+1).join(', ')}. El producto NO está completo.`,'bad');
+    return finalizeIncompleto(P, faltantes);
+  }
+
+  // 7. BONUS — solo si TODOS los módulos existen (el bonus presupone la transformación completa)
+  log('→ Bonus','dim');
+  const bon=await callAPI(buildBonusPrompt({avatar:P.avatarElegido,promesa:P.promesaElegida,friccion:MEMORIA.relevancia,evidencias:P.evidencias,voz:MEMORIA.voz}),'Propón el bonus.','bonus',1000);
+  if(bon&&bon.bonus_recomendado){ P.bonus=bon.bonus_recomendado; log(`✓ Bonus: ${P.bonus.nombre}`,'ok'); }
+  else log('⚠ Bonus omitido','warn');
+
+  finalize(P,null);
+}
+
+// Desarrolla SOLO los módulos que aún no tienen desarrollo válido (índices null en P.desarrollo).
+// Reanudable: si se llama de nuevo, solo reintenta los que faltan, sin repetir los ya hechos.
+async function desarrollarPendientes(P){
+  const mods = P.forma.producto_estructura.modulos;
+  for(let i=0;i<mods.length;i++){
+    if(P.desarrollo[i]) continue; // ya desarrollado, no repetir
+    const m=mods[i];
+    const evM=P.evidencias[i]||{evidencia:m.que_contiene||''};
+    // El último módulo suele ser el más denso (conduce a la experiencia irreversible) → más margen de tokens.
+    const esUltimo = (i===mods.length-1);
+    const tokens = esUltimo ? 2600 : 1500;
+    const territorio = construirTerritorio(mods, P.evidencias, i);
+    const des=await callAPI(buildDesarrolloPrompt({modulo:m,evidencia:evM.evidencia||'',avatar:P.avatarElegido,promesa:P.promesaElegida,voz:MEMORIA.voz||'',territorio}),'Desarrolla este módulo.','desarrollo_'+i,tokens);
+    if(des){ P.desarrollo[i]=des; const pend=(des.materiales_pendientes||[]).length; log(`  ✓ Módulo ${i+1}: ${des.titulo||m.titulo} (${(des.experiencias||[]).length} experiencias${pend?`, ${pend} material(es) pendiente(s)`:''})`,pend?'warn':'ok'); }
+    else log(`  ✗ Módulo ${i+1} falló`,'bad');
+  }
+}
+
+// Botón de reanudación: reintenta SOLO los módulos faltantes, sin repetir Inferencia/Opciones/Arquitectura/etc.
+async function reanudarModulosFaltantes(){
+  const P=window.__E2E_PRODUCT;
+  if(!P||!P.forma){ log('No hay estado previo para reanudar.','bad'); return; }
+  document.getElementById('resumeBtn').disabled=true;
+  log('↻ Reanudando SOLO los módulos faltantes (sin repetir el resto del pipeline)…','warn');
+  t0=t0||Date.now();
+  await desarrollarPendientes(P);
+  const faltantes = P.desarrollo.map((d,i)=>d?null:i).filter(i=>i!==null);
+  if(faltantes.length){
+    log(`✗ Aún faltan módulos: ${faltantes.map(i=>i+1).join(', ')}`,'bad');
+    finalizeIncompleto(P, faltantes);
+  } else {
+    log('✓ Todos los módulos completos tras reanudación','ok');
+    log('→ Bonus','dim');
+    const bon=await callAPI(buildBonusPrompt({avatar:P.avatarElegido,promesa:P.promesaElegida,friccion:MEMORIA.relevancia,evidencias:P.evidencias,voz:MEMORIA.voz}),'Propón el bonus.','bonus',1000);
+    if(bon&&bon.bonus_recomendado){ P.bonus=bon.bonus_recomendado; log(`✓ Bonus: ${P.bonus.nombre}`,'ok'); }
+    finalize(P,null);
+  }
+}
+
+// Finalización cuando el producto está INCOMPLETO: no declara completo, no corre Bonus, conserva lo válido.
+function finalizeIncompleto(P, faltantes){
+  setStats();
+  log(`⚠ PRODUCTO INCOMPLETO — ${faltantes.length} módulo(s) sin desarrollar. NO se declara completo ni se genera Bonus.`,'bad');
+  window.__E2E_RAW=rawResults; window.__E2E_PRODUCT=P;
+  // Render parcial honesto: muestra los módulos válidos + aviso de cuáles faltan.
+  renderProducto(P, {incompleto:true, faltantes});
+  const conIntentos=Object.keys(rawResults).filter(k=>rawResults[k]&&rawResults[k].intentos);
+  if(conIntentos.length){ document.getElementById('autopsyBtn').disabled=false; const p=conIntentos.find(k=>rawResults[k].intentos.length>1); autopsiaEtapa=p||conIntentos[0]; }
+  document.getElementById('resumeBtn').style.display='inline-block';
+  document.getElementById('resumeBtn').disabled=false;
+  document.getElementById('runBtn').disabled=false;
+}
+
+function finalize(P,abortadoEn){
+  setStats();
+  if(abortadoEn) log(`✗ PIPELINE ABORTADO EN: ${abortadoEn}`,'bad');
+  else log('✓✓ PIPELINE COMPLETO','ok');
+  window.__E2E_RAW=rawResults;
+  window.__E2E_PRODUCT=P;
+  renderProducto(P, {incompleto:false});
+  log('Resultado bruto en window.__E2E_RAW · producto en window.__E2E_PRODUCT','dim');
+  const conIntentos=Object.keys(rawResults).filter(k=>rawResults[k] && rawResults[k].intentos);
+  if(conIntentos.length){
+    document.getElementById('autopsyBtn').disabled=false;
+    const conProblema=conIntentos.find(k=>rawResults[k].intentos.length>1);
+    autopsiaEtapa = conProblema || conIntentos[0];
+  }
+  document.getElementById('runBtn').disabled=false;
+}
+
+// Render compartido — honesto sobre el estado. Marca faltantes en vez de ocultarlos.
+function renderProducto(P, opts){
+  opts=opts||{};
+  const el=document.getElementById('product');
+  const nMods = P.forma ? P.forma.producto_estructura.modulos.length : 0;
+  const validos = (P.desarrollo||[]).filter(Boolean).length;
+  // Materiales factuales pendientes en todo el producto (corrección 3: completo técnico ≠ vendible)
+  const materialesPend = (P.desarrollo||[]).filter(Boolean).reduce((acc,d)=>acc.concat(d.materiales_pendientes||[]),[]);
+  const factualesPend = materialesPend.filter(x=>/dato_verificable|documento_real|ejemplo_real/.test(x.tipo||''));
+  let h='';
+  if(opts.incompleto){
+    h+=`<div style="background:rgba(251,113,133,0.12);border:1px solid var(--bad);border-radius:8px;padding:10px 12px;margin-bottom:12px;color:var(--bad);font-size:12.5px;"><b>⚠ Producto incompleto:</b> ${validos} de ${nMods} módulos desarrollados. Faltan: ${(opts.faltantes||[]).map(i=>i+1).join(', ')}. No se declara terminado ni se genera Bonus hasta completarlos.</div>`;
+  } else if(factualesPend.length){
+    h+=`<div style="background:rgba(255,159,67,0.12);border:1px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:12px;color:var(--warn);font-size:12.5px;"><b>✓ Contenido desarrollado · requiere completar/verificar ${factualesPend.length} material(es) factual(es) antes de vender.</b> El producto está pedagógicamente completo, pero contiene placeholders de datos reales que el creador debe suministrar o verificar. No es "listo para vender" todavía.</div>`;
+  }
+  if(P.avatarElegido){ h+=`<h3>Avatar elegido</h3><div>${esc(P.avatarElegido.texto)}</div>`; }
+  if(P.promesaElegida){ h+=`<h3>Promesa elegida</h3><div>${esc(P.promesaElegida.texto)}</div>`; }
+  if(P.forma){ h+=`<h3>Forma del producto <span class="badge ${opts.incompleto?'':'pub'}">${opts.incompleto?'no vendible aún':'se vende'}</span></h3><div><b>${esc(P.forma.producto_estructura.nombre_provisional)}</b> · ${esc(P.forma.forma_recomendada?P.forma.forma_recomendada.nombre:'')}</div>`; }
+  if(P.desarrollo){
+    h+=`<h3>Módulos desarrollados (${validos} de ${nMods})</h3>`;
+    (P.forma?P.forma.producto_estructura.modulos:[]).forEach((m,i)=>{
+      const d=P.desarrollo[i];
+      if(d){
+        h+=`<div class="mod"><b>${i+1}. ${esc(d.titulo)}</b>`;
+        (d.experiencias||[]).forEach(e=>{ h+=`<div class="t-dim">· [${esc(e.tipo)}] ${esc((e.contenido||'').slice(0,220))}…</div>`; });
+        if(d.ejercicio) h+=`<div style="color:var(--cyan);font-size:12px;margin-top:4px;">Ejercicio: ${esc(d.ejercicio.consigna)} <span class="t-dim">(demuestra: ${esc(d.ejercicio.que_demuestra)})</span></div>`;
+        if((d.materiales_pendientes||[]).length){ d.materiales_pendientes.forEach(mp=>{ h+=`<div style="color:var(--warn);font-size:11px;margin-top:3px;">⚑ Material pendiente [${esc(mp.tipo)}]: ${esc(mp.descripcion)} <span class="t-dim">(${esc(mp.estado)})</span></div>`; }); }
+        h+=`</div>`;
+      } else {
+        h+=`<div class="mod" style="opacity:.6;"><b style="color:var(--bad);">${i+1}. ${esc(m.titulo)} — SIN DESARROLLAR</b> <span class="t-dim">(este módulo falló; pendiente de reanudar)</span></div>`;
+      }
+    });
+  }
+  if(P.bonus){ h+=`<h3>Bonus</h3><div><b>${esc(P.bonus.tipo)}: ${esc(P.bonus.nombre)}</b> — ${esc(P.bonus.que_resuelve)}</div>`; }
+  if(P.forma&&P.forma.blueprint_privado){
+    const bp=P.forma.blueprint_privado;
+    h+=`<h3>Blueprint estratégico <span class="badge priv">privado · no se vende</span></h3>`;
+    if(opts.incompleto) h+=`<div style="color:var(--warn);font-size:11.5px;margin-bottom:4px;">Nota: el Blueprint describe los ${nMods} módulos de la arquitectura, pero el producto solo tiene ${validos} desarrollados. Coincidirán al completar los faltantes.</div>`;
+    h+=`<div style="font-size:12.5px;"><div><b>Por qué este camino:</b> ${esc(bp.por_que_este_camino)}</div><div><b>Evidencias clave:</b> ${esc(bp.evidencias_clave)}</div><div style="color:var(--cyan);margin-top:4px;">${esc(bp.nota_reutilizacion)}</div></div>`;
+  }
+  el.innerHTML=h||'<span class="t-bad">Sin producto generado.</span>';
+}
+
+function esc2(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let autopsiaEtapa='arquitectura';
+function mostrarAutopsia(){
+  const panel=document.getElementById('autopsyPanel');
+  const open = panel.style.display!=='none';
+  if(open){ panel.style.display='none'; document.getElementById('autopsyBtn').textContent='▽ Autopsia (debugging)'; return; }
+  panel.style.display='block'; document.getElementById('autopsyBtn').textContent='△ Ocultar autopsia';
+  renderAutopsia();
+}
+function setAutopsiaEtapa(e){ autopsiaEtapa=e; renderAutopsia(); }
+function renderAutopsia(){
+  const panel=document.getElementById('autopsyPanel');
+  // selector de etapa: solo muestra las que tienen intentos registrados
+  const conIntentos=Object.keys(rawResults).filter(k=>rawResults[k] && rawResults[k].intentos);
+  let sel='<div style="margin-bottom:10px;">';
+  conIntentos.forEach(k=>{ sel+=`<button onclick="setAutopsiaEtapa('${k}')" style="margin-right:6px;background:${k===autopsiaEtapa?'var(--grad)':'var(--panel)'};color:${k===autopsiaEtapa?'#0c1320':'var(--ink)'};border:1px solid var(--line);padding:4px 10px;font-size:11px;cursor:pointer;border-radius:6px;">${k}</button>`; });
+  sel+='</div>';
+  const arq=rawResults[autopsiaEtapa];
+  if(!arq || !arq.intentos){ panel.innerHTML=sel+'Sin datos de esta etapa.'; return; }
+  const tokensPorEtapa={inferencia:1200,opciones:1500,arquitectura:4000,evidencia:2000,forma:4000,bonus:1000};
+  const tk = tokensPorEtapa[autopsiaEtapa]!==undefined?tokensPorEtapa[autopsiaEtapa]:(autopsiaEtapa.startsWith('desarrollo')?1500:'?');
+  let h=sel+'<div style="color:var(--warn);font-weight:600;margin-bottom:10px;">AUTOPSIA DE '+autopsiaEtapa.toUpperCase()+' — '+arq.intentos.length+' intento(s) · max_tokens: '+tk+'</div>';
+  arq.intentos.forEach(it=>{
+    const cruda=it.respuestaCruda||'';
+    // punto de corte: últimos 80 chars de la respuesta (para ver DÓNDE se cortó)
+    const cola = cruda.length>80 ? cruda.slice(-80) : cruda;
+    h+='<div style="border-top:1px solid var(--line);padding:10px 0;">';
+    h+='<div style="color:var(--cyan);font-weight:600;">▸ Intento '+it.intento+' — clasificación: <span style="color:var(--warn);">'+esc2(it.clasificacion)+'</span> · longitud: '+cruda.length+' chars</div>';
+    // Observabilidad HTTP
+    if(it.httpStatus!==undefined){
+      const statusColor=(it.httpOk?'var(--ok, #4ade80)':'var(--bad)');
+      h+='<div style="margin:4px 0;font-size:11.5px;">HTTP: <span style="color:'+statusColor+';font-weight:600;">'+esc2(it.httpStatus)+'</span> · ok: '+esc2(it.httpOk)+'</div>';
+    }
+    if(it.apiErrorType) h+='<div style="color:var(--bad);font-size:11.5px;margin:2px 0;">API error: <b>'+esc2(it.apiErrorType)+'</b> — '+esc2(it.apiErrorMessage)+'</div>';
+    if(it.stopReason) h+='<div style="font-size:11.5px;color:var(--ink-dim);margin:2px 0;">stop_reason: <code>'+esc2(it.stopReason)+'</code></div>';
+    if(it.usage) h+='<div style="font-size:11.5px;color:var(--ink-dim);margin:2px 0;">usage: input='+esc2(it.usage.input_tokens)+' · output='+esc2(it.usage.output_tokens)+'</div>';
+    if(it.errorParseo) h+='<div style="color:var(--bad);margin:4px 0;">Error de parseo: '+esc2(it.errorParseo)+'</div>';
+    h+='<div style="margin:4px 0;color:var(--ink-dim);">Punto donde se corta (últimos 80 chars): <code style="color:var(--bad);">'+esc2(cola)+'</code></div>';
+    h+='<details style="margin-top:6px;"><summary style="cursor:pointer;color:var(--ink-dim);">Respuesta cruda completa ('+cruda.length+' chars)</summary><pre style="white-space:pre-wrap;color:var(--ink-dim);max-height:280px;overflow:auto;background:#060a12;padding:8px;border-radius:6px;">'+esc2(cruda||'(vacía)')+'</pre></details>';
+    h+='<details style="margin-top:4px;"><summary style="cursor:pointer;color:var(--ink-dim);">Bloque exacto que intentó parsear</summary><pre style="white-space:pre-wrap;color:var(--ink-faint);max-height:220px;overflow:auto;background:#060a12;padding:8px;border-radius:6px;">'+esc2(it.bloqueParseado||'(no se encontró bloque { })')+'</pre></details>';
+    h+='<details style="margin-top:4px;"><summary style="cursor:pointer;color:var(--ink-dim);">Response body completo</summary><pre style="white-space:pre-wrap;color:var(--ink-faint);max-height:220px;overflow:auto;background:#060a12;padding:8px;border-radius:6px;">'+esc2(JSON.stringify(it.responseBody,null,2)||'')+'</pre></details>';
+    h+='<details style="margin-top:4px;"><summary style="cursor:pointer;color:var(--ink-dim);">Prompt final enviado ('+(it.promptEnviado||'').length+' chars)</summary><pre style="white-space:pre-wrap;color:var(--ink-faint);max-height:220px;overflow:auto;background:#060a12;padding:8px;border-radius:6px;">'+esc2(it.promptEnviado||'')+'</pre></details>';
+    h+='</div>';
+  });
+  h+='<button onclick="copiarAutopsia()" style="margin-top:10px;background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:6px 12px;font-size:11px;cursor:pointer;">Copiar todo (JSON)</button>';
+  panel.innerHTML=h;
+}
+function copiarAutopsia(){
+  navigator.clipboard.writeText(JSON.stringify(rawResults[autopsiaEtapa],null,2)).then(()=>{ log('Autopsia de '+autopsiaEtapa+' copiada','dim'); });
+}
+</script>
+</body></html>

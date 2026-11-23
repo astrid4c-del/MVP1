@@ -1,0 +1,345 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 Plan Maestro de Implementaci\'f3n (Fase 6 y cierre del Motor Cognitivo)\
+\
+Versi\'f3n: 1.1\
+\
+Estado: Activo\
+\
+\'daltima actualizaci\'f3n:\
+2026-07-15\
+\
+---\
+\
+# Objetivo\
+\
+Este documento define c\'f3mo completar el Motor Cognitivo minimizando:\
+\
+- consumo de contexto;\
+- consumo de tokens;\
+- retrabajo;\
+- deuda t\'e9cnica.\
+\
+No describe arquitectura.\
+\
+Describe el flujo oficial de implementaci\'f3n.\
+\
+---\
+\
+# Regla principal\
+\
+Nunca volver a solicitar una fase completa.\
+\
+Toda fase debe dividirse en Goals.\
+\
+Todo Goal debe dividirse en Tasks cuando ya no pueda implementarse razonablemente en una sola sesi\'f3n de trabajo.\
+\
+---\
+\
+# Unidad oficial de trabajo\
+\
+Una conversaci\'f3n de Claude\
+\
+\uc0\u8595 \
+\
+Un Goal\
+\
+\uc0\u8595 \
+\
+Un checkpoint\
+\
+\uc0\u8595 \
+\
+Fin.\
+\
+Si un Goal supera el alcance de una sola sesi\'f3n, deber\'e1 dividirse en Tasks antes de continuar.\
+\
+---\
+\
+# Flujo oficial\
+\
+Goal\
+\
+\uc0\u8595 \
+\
+Implementation Plan\
+\
+\uc0\u8595 \
+\
+Implementaci\'f3n\
+\
+\uc0\u8595 \
+\
+Tests dirigidos\
+\
+\uc0\u8595 \
+\
+Correcci\'f3n\
+\
+\uc0\u8595 \
+\
+Checkpoint\
+\
+\uc0\u8595 \
+\
+Nueva conversaci\'f3n.\
+\
+---\
+\
+# Antes de comenzar un Goal\
+\
+Claude debe responder \'fanicamente:\
+\
+Estado recibido.\
+\
+Archivos necesarios.\
+\
+Dependencias.\
+\
+Plan de implementaci\'f3n.\
+\
+Nada m\'e1s.\
+\
+No debe comenzar a escribir documentaci\'f3n.\
+\
+No debe recorrer todo el repositorio.\
+\
+No debe volver a analizar fases anteriores.\
+\
+---\
+\
+# Durante el Goal\
+\
+Permitido:\
+\
+Modificar \'fanicamente:\
+\
+- archivos necesarios;\
+- tests afectados.\
+\
+No permitido:\
+\
+- ejecutar suite completo;\
+- recorrer el proyecto;\
+- releer arquitectura completa;\
+- reescribir c\'f3digo estable.\
+\
+---\
+\
+# Fin del Goal\
+\
+Respuesta m\'e1xima:\
+\
+- archivos modificados;\
+- tests ejecutados;\
+- resultado;\
+- checkpoint.\
+\
+Nada m\'e1s.\
+\
+---\
+\
+# Suite completo\
+\
+El suite completo solo puede ejecutarse:\
+\
+al cerrar una fase completa.\
+\
+Nunca despu\'e9s de cada Goal.\
+\
+---\
+\
+# Uso de contexto\
+\
+Claude debe asumir que:\
+\
+PROJECT_MAP.md\
+\
+es la fuente oficial.\
+\
+Nunca debe reconstruir mentalmente el proyecto leyendo el repositorio completo.\
+\
+---\
+\
+# Cambios arquitect\'f3nicos\
+\
+No pueden ocurrir durante implementaci\'f3n.\
+\
+Si Claude detecta un cambio arquitect\'f3nico debe:\
+\
+detenerse\
+\
+\uc0\u8595 \
+\
+explicar el conflicto\
+\
+\uc0\u8595 \
+\
+esperar aprobaci\'f3n.\
+\
+---\
+\
+# Deuda t\'e9cnica\
+\
+Toda deuda encontrada debe clasificarse como:\
+\
+1.\
+Bug\
+\
+2.\
+Refactor\
+\
+3.\
+Mejora futura\
+\
+4.\
+Deuda metodol\'f3gica\
+\
+No debe corregirse autom\'e1ticamente.\
+\
+---\
+\
+# Nueva conversaci\'f3n\
+\
+Cuando una conversaci\'f3n llegue aproximadamente al 70\'9680% del l\'edmite:\
+\
+No continuar.\
+\
+Crear conversaci\'f3n nueva.\
+\
+Primer mensaje:\
+\
+"Continuamos desde el \'faltimo checkpoint.\
+\
+Estado oficial:\
+\
+(Tag)\
+\
+Lee \'fanicamente:\
+\
+PROJECT_MAP.md\
+\
+ROADMAP.md\
+\
+IMPLEMENTATION_AUDIT.md\
+\
+Contin\'faa \'fanicamente el Goal pendiente."\
+\
+---\
+\
+# Qu\'e9 NO hacer\
+\
+Nunca pedir:\
+\
+"Haz toda la fase."\
+\
+Nunca pedir:\
+\
+"Implementa todo."\
+\
+Nunca pedir:\
+\
+"Recorre el proyecto."\
+\
+Nunca pedir:\
+\
+"Revisa toda la arquitectura."\
+\
+Nunca pedir:\
+\
+"Optimiza todo."\
+\
+---\
+\
+# Qu\'e9 s\'ed hacer\
+\
+Pedir:\
+\
+Goal 6.2\
+\
+\uc0\u8595 \
+\
+Goal 6.3\
+\
+\uc0\u8595 \
+\
+Goal 6.4\
+\
+\uc0\u8595 \
+\
+Goal 6.5\
+\
+\uc0\u8595 \
+\
+Goal 6.6\
+\
+uno por uno.\
+\
+Si un Goal resulta demasiado grande durante su implementaci\'f3n, deber\'e1 dividirse inmediatamente en Tasks m\'e1s peque\'f1as antes de continuar.\
+\
+---\
+\
+# Definition of Done\
+\
+Un Goal est\'e1 terminado cuando:\
+\
+\uc0\u10003  c\'f3digo implementado\
+\
+\uc0\u10003  tests dirigidos verdes\
+\
+\uc0\u10003  checkpoint creado\
+\
+\uc0\u10003  deuda registrada\
+\
+\uc0\u10003  listo para cerrar conversaci\'f3n\
+\
+Nada m\'e1s.\
+\
+---\
+\
+# Definition of Done de una Fase\
+\
+Una fase termina \'fanicamente cuando:\
+\
+\uc0\u10003  todos los Goals terminados\
+\
+\uc0\u10003  suite completo verde\
+\
+\uc0\u10003  checkpoint\
+\
+\uc0\u10003  auditor\'eda\
+\
+\uc0\u10003  roadmap actualizado\
+\
+---\
+\
+# Objetivo final\
+\
+Al finalizar Fase 6 deber\'e1 existir:\
+\
+\uc0\u10003  Motor Cognitivo estable\
+\
+\uc0\u10003  Pipeline completo\
+\
+\uc0\u10003  APIs\
+\
+\uc0\u10003  Persistencia\
+\
+\uc0\u10003  Observabilidad\
+\
+\uc0\u10003  Frontend conectado\
+\
+\uc0\u10003  Validaci\'f3n metodol\'f3gica con Astrid\
+\
+\uc0\u10003  Blueprint\
+\
+\uc0\u10003  Producto Digital\
+\
+\uc0\u10003  listo para comenzar pruebas reales con usuarios.\
+\
+Ese momento marca el final del desarrollo del Motor Cognitivo y el inicio de la evoluci\'f3n del producto.}

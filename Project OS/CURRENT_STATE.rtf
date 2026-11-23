@@ -1,0 +1,296 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 Current State\
+\
+Versi\'f3n: 4.1\
+\
+Estado: Vivo\
+\
+\'daltima actualizaci\'f3n: 2026-08-03\
+\
+---\
+\
+# Objetivo\
+\
+Este documento responde una \'fanica pregunta:\
+\
+> \'bfCu\'e1l es el estado actual del proyecto?\
+\
+Debe poder leerse en menos de cinco minutos.\
+\
+No contiene historia, ni teor\'eda, ni decisiones arquitect\'f3nicas.\
+\
+Solo describe el estado actual del sistema.\
+\
+---\
+\
+# Estado General\
+\
+Proyecto:\
+\
+C\'edrculo\
+\
+Estado:\
+\
+**Etapa 1 \'97 "due\'f1o \'fanico de estado" \'97 aprobada y cerrada.** Cierre acotado expl\'edcitamente: cubre autoridad cognitiva y persistencia.\
+\
+**Etapa 2 \'97 "Grafo de Conocimiento vivo" \'97 aprobada y cerrada.** Grafo de conceptos e incertidumbres como objeto central de la comprensi\'f3n conversacional, bajo el flag `CIRCULO_KNOWLEDGE_GRAPH_ENABLED`. Incluye 2 Incrementos m\'e1s 3 correcciones puntuales validadas con E2E real contra Gemini. Ver **MASTER_ROADMAP.md**.\
+\
+**Etapa 3 \'97 "Ciclo Cognitivo de Descubrimiento" \'97 aprobada y cerrada.** Cierra el ADR hom\'f3nimo: un \'fanico ciclo epistemol\'f3gico (evidencia \uc0\u8594  hip\'f3tesis `inferido` \uc0\u8594  reconocimiento/rechazo \uc0\u8594  conocimiento compartido `experto`) aplicado de forma uniforme a conceptos, a la s\'edntesis de una gram\'e1tica (`sintesis_interpretativa`) y a la reacci\'f3n visible ante un rechazo. Incluye 8 Incrementos, cada uno validado con E2E real contra Gemini. Ver **MASTER_ROADMAP.md**.\
+\
+**Este documento estuvo congelado, sin actualizarse, desde el cierre de Etapa 3 (2026-07-22) hasta esta revisi\'f3n (2026-08-01).** En ese intervalo se produjeron 87 commits reales sobre el repositorio (contados desde el merge-base con `main`) sin que ning\'fan documento can\'f3nico de `Project OS` los reflejara \'97 16 de continuidad directa de Etapa 3 (Motor de Movimientos Conversacionales, Contrato de Gobernanza de Materializaci\'f3n) y 71 bajo el identificador de trabajo `circulomejora006`. Esa desalineaci\'f3n entre la fuente can\'f3nica y el estado real del repositorio ya produjo decisiones contradictorias entre herramientas distintas trabajando sobre el mismo c\'f3digo. Ver la secci\'f3n **"Evoluci\'f3n posterior a Etapa 3"**, m\'e1s abajo, para el detalle completo.\
+\
+No hay ninguna Etapa nueva abierta formalmente con la ceremonia de Incrementos que gobern\'f3 las Etapas 1-3 \'97 el trabajo posterior ocurri\'f3 bajo el identificador `circulomejora006`, sin ese proceso de apertura/cierre expl\'edcito. No iniciar una nueva etapa ni un nuevo incremento sin autorizaci\'f3n expl\'edcita.\
+\
+---\
+\
+# Evoluci\'f3n posterior a Etapa 3 \'97 Motor de Movimientos Conversacionales y D1 (`circulomejora006`)\
+\
+Esta secci\'f3n registra, con evidencia verificable en `git log` y en el c\'f3digo productivo, qu\'e9 se construy\'f3, qu\'e9 est\'e1 conectado, y qu\'e9 permanece aislado. No reabre ninguna decisi\'f3n \'97 documenta lo ya decidido y comiteado.\
+\
+## Rango de commits\
+\
+- Merge-base con `main`: `ff37668`.\
+- Rama de trabajo: `audit/gemini-clean`.\
+- HEAD actual: `27dd14a`.\
+- 119 commits totales desde el merge-base; 16 anteriores al identificador `circulomejora006` (continuidad de Etapa 3 \'97 Motor de Movimientos Conversacionales bajo flag, Contrato de Gobernanza de Materializaci\'f3n); 103 bajo `circulomejora006`, desde `a22d081` hasta `27dd14a` (71 hasta `0b0abe2`/reporte20, 31 adicionales desde `d733b0b` hasta `27dd14a`, ver bullet siguiente; el commit `d733b0b` mismo es de gobernanza documental, no cuenta como capacidad).\
+- Los reportes `circulomejora006_reporte01` a `circulomejora006_reporte20` (m\'e1s los pasos `act07` a `act10l` que los preceden) cubren la construcci\'f3n incremental de: la selecci\'f3n de movimiento conversacional para DESTINO, el Ciclo Cognitivo de Descubrimiento aplicado a interpretaciones materializadas, la validaci\'f3n de relaci\'f3n transformacional (Hip\'f3tesis\uc0\u8594 Afirmaci\'f3n), la Presentaci\'f3n estructurada, los cuatro evaluadores de Base Defendible, la certificaci\'f3n legal de Movimiento, y D1 en sus dos formas (m\'ednima, comprometida; D1.7-A, aislada).\
+- Continuacion sin ceremonia de Etapa, bajo el mismo identificador `circulomejora006` (31 commits adicionales desde `d733b0b`, el commit de gobernanza que produjo la revision anterior de este documento, hasta `27dd14a`): cierre de la fidelidad de presentacion (`e5681b0`), cierre de S1-R para el ambito RELACION (4 Incrementos: persistencia y presentabilidad, apertura atomica, reapertura durable, confirmacion/resolucion atomica de la sucesora), materializacion del contrato transformacional declarativo T1-T10 (`f5dd76b`, `packages/cognitive-engine/tests/corpus/destino/transformacional-v1/`), un adaptador de observacion de solo lectura contra persistencia real, un nucleo de runner determinista y generico, y la integracion real de ese runner contra Writer + SQLite reales para 9 de las 10 trayectorias declaradas (T1-T7, T9, T10 -- T8 permanece fuera del runner, ver seccion dedicada mas abajo). D1, S1-C y Modo B permanecen sin conectar/sin abrir/sin autorizar, sin cambios respecto a los reportes 17-20.\
+\
+## Capacidades productivas conectadas\
+\
+Consumidas realmente por `InteraccionCognitivaWriter.js` en el turno real de DESTINO \'97 verificado leyendo el c\'f3digo, no solo los commits:\
+\
+- `decidirMovimientoDestino` (`MovimientoConversacionalPolicy.js`) \'97 selecci\'f3n de movimiento conversacional dentro de EXPLORANDO. Invocada directamente por el Writer.\
+- `decidirProtocolo` / `determinarEstadoProtocolarEfectivo` (`ProgresoConversacionalPolicy.js`) \'97 autoridad de transici\'f3n de `protocoloEstado` para las 5 gram\'e1ticas, incluida la se\'f1al compartida de suficiencia (`evaluarSenalDeSuficiencia`, reporte20).\
+- `ValidacionRelacionTransformacionalDestinoCasoDeUso.js` (`procesarRespuestaValidacionRelacionTransformacionalDestino`) \'97 ciclo completo de VALIDANDO_RELACION_TRANSFORMACIONAL: recupera contexto autoritativo, construye prompt, invoca al generador, decide v\'eda `decidirProtocolo`, aplica el veredicto. Conectado desde `act10j`.\
+- `convergerHipotesisConfirmadaAAfirmacionDurable` (Ciclo Hip\'f3tesis\uc0\u8594 Afirmaci\'f3n) \'97 convergencia productiva real, con recuperaci\'f3n idempotente (`reporte01`/`reporte02`).\
+- `HipotesisTransformacionalDestino` / `AfirmacionTransformacionalDestino` \'97 entidades durables, con lifecycle process-local y persistencia real.\
+\
+## Capacidades construidas y certificadas, pero aisladas de producci\'f3n\
+\
+Verificado por ausencia de referencia real (no en comentario) desde `InteraccionCognitivaWriter.js`:\
+\
+- **BaseDefendible** \'97 `BaseDefendibleDestinoPolicy.js` + sus 4 evaluadores (proporcionalidad, especificidad, diferencia transformacional, observabilidad) + `ProgresoDestinoDesdeBaseDefendibleOrquestacion.resolverProgresoDestinoDesdeBaseDefendible` + `ProgresoConversacionalPolicy.resolverEstadoConversacionalDestino`. Esta cadena S\'cd est\'e1 conectada internamente entre s\'ed (reporte09/reporte10), pero ning\'fan punto de entrada es consumido por el Writer.\
+- **Presentaci\'f3n estructurada** \'97 `PresentacionTransformacionalEstructurada` (reporte03). Construida y persistida por unidad (INICIO/MECANISMO/RESULTADO/OBSERVABILIDAD), sin consumidor productivo que la muestre al usuario. Nota (esta revisi\'f3n): la CONVERGENCIA que la produce (Hip\'f3tesis confirmada \'97 Afirmaci\'f3n\'97 Presentaci\'f3n) s\'ed corre dentro del turno real del Writer para cualquier usuario que complete el ciclo transformacional de DESTINO \'97 lo que sigue aislado es su EXHIBICI\'d3N al usuario como mensaje, nunca su creaci\'f3n/persistencia.\
+- **S\'edntesis determinista desde Presentaci\'f3n** \'97 `SintesisDestinoDesdePresentacionPolicy.js`. Reconstruye el texto byte a byte desde la Presentaci\'f3n y verifica consistencia contra la formulaci\'f3n autorizada. Aislada de producci\'f3n (el Writer nunca la invoca) \'97 pero, desde esta revisi\'f3n, s\'ed est\'e1 ejercitada contra Writer/SQLite reales por el runner de trayectorias (`producirSintesisDestinoAutorizadaDesdeRepositorio`, ver secci\'f3n dedicada m\'e1s abajo): "ejercitada por el runner de pruebas" nunca equivale a "conectada al flujo productivo real".\
+- **D1.7-A** \'97 `DireccionConversacionalDestinoPolicy.js` (ranking multi-candidato por deuda/costo/valor marginal) + `ObligacionesAbiertasDestinoProjection.js` + `ValidacionFotografiaSemanticaDestinoPolicy.js` + su corpus de aceptaci\'f3n ejecutable (`tests/corpus/destino/v1/`). Certificada y comprometida en el repositorio (reporte17), sin ning\'fan consumidor productivo \'97 nunca importada desde `InteraccionCognitivaWriter.js`.\
+- **Continuidad Movimiento\uc0\u8594 D1** \'97 `ContinuidadMovimientoDestinoOrquestacion.js` (`evaluarContinuidadMovimientoDestino`). Construida, conectada al Writer transitoriamente (reporte18) y retirada de esa conexi\'f3n (reporte19) tras demostrarse circular con los datos productivos actuales \'97 el m\'f3dulo y sus 11 pruebas permanecen comprometidos y aislados, listos para reconectar si existiera una fuente de deuda independiente.\
+\
+## Contrato transformacional T1-T10 y runner determinista (S1-R + integraci\'f3n Writer/SQLite, esta revisi\'f3n)\
+\
+Nunca conectado a `InteraccionCognitivaWriter.js` -- es infraestructura de PRUEBA (certificaci\'f3n de contrato), no un segundo camino de escritura de dominio. Vive enteramente bajo `packages/cognitive-engine/tests/` (contrato en `tests/corpus/destino/`, runner e integraci\'f3n en `tests/` y `tests/corpus/destino/transformacional-v1/`).\
+\
+- **Contrato declarativo T1-T10** (`trajectories.js`, `contract.js`, `f5dd76b`) -- diez trayectorias declarativas del ciclo transformacional de DESTINO (Hip\'f3tesis, Afirmaci\'f3n AUTORIZADA/SUPERADA, Presentaci\'f3n estructurada, s\'edntesis vigente, reparaci\'f3n S1-R ABIERTA/RESUELTA, transici\'f3n de gram\'e1tica), validadas estructuralmente por `validate-contract.js`. Ninguna trayectoria conoce D1 como autoridad.\
+- **Runner determinista** (`TrajectoryRunnerCore.js`, `3622077`) -- n\'facleo gen\'e9rico (`ejecutarTrayectoria`), sin ning\'fan literal de dominio ni de DESTINO, con 4 dependencias inyectadas (sessionController, stepDispatcher, observationAdapter, propertyEvaluator). Probado primero con dependencias 100% controladas, sin SQLite.\
+- **Observation adapter** (`DestinoObservationAdapter.js`, `1ba5fc7`/`6a628e4`/`79959a9`) -- de solo lectura, contra persistencia real (`findHeadBySession`/`getCausalHistory`/`findReparacionAbiertaPorAfirmacion`/`findReparacionPorId`/`obtenerHipotesisSucesoraCandidata`/`producirSintesisDestinoAutorizadaDesdeRepositorio`), fail-closed, aislado por sesi\'f3n.\
+- **Integraci\'f3n real contra Writer + SQLite** (`SqliteSessionController.js`, `CognitiveTrajectoryStepDispatcher.js`, `ModernContractResponseProvider.js`, `DeterministicExpertSimulator.js`, commits `6bacab5` a `27dd14a`) -- 9 de las 10 trayectorias declaradas se ejecutan de punta a punta contra un `InteraccionCognitivaWriter` real y SQLite real, sin Gemini (Capa 1 controlada de forma determinista): **T1, T2, T3, T4, T5, T6, T7, T9, T10**.\
+\
+### T8 -- no ejecutada por el runner\
+\
+T8 fue redefinida (`73c29b2`, `RESPUESTA_POST_SINTESIS_AMBIGUA_SIN_SUSTITUCION_DE_AUTORIDAD`) para certificar preservaci\'f3n de autoridad durante un turno POSTERIOR a la presentaci\'f3n de la s\'edntesis -- nunca la fidelidad byte-exacta de la presentaci\'f3n misma, que certifica T1. Sus invariantes tienen cobertura previa mediante `test_fidelidad_sintesis_destino.js` y los tests de S1-R (Incrementos 1-4) -- pero T8, como trayectoria del runner (`ejecutarTrayectoria` contra Writer/SQLite reales), NO aparece en `test_trajectory_runner_writer_integration.js`. No afirmar que fue ejecutada por el runner mientras eso siga siendo cierto.\
+\
+### Precondiciones fuera del veredicto\
+\
+T4, T5, T7 y T10 declaran `estadoInicial.tipo` distinto de `HANDOFF_DESDE_D0`/`LIBRE` (`PRECONDICION_ESTRUCTURAL` o `CONTINUACION_DE_TRAYECTORIA`) -- `SqliteSessionController.js` reconstruye ese punto de partida con turnos reales contra el Writer, pero SIEMPRE `ejecutadaPorRunner:false` e `incluidaEnVeredicto:false`: ning\'fan paso de precondici\'f3n pertenece a `secuenciaDePasos` ni cuenta para el resultado (`CUMPLE_DETERMINISTA`/`CUMPLE_CON_EFECTOS_NO_EVALUADOS`/`NO_CUMPLE`/`ERROR_DE_EJECUCION`) de la trayectoria.\
+\
+### Propiedades sem\'e1nticas pendientes y efectos prohibidos\
+\
+`properties.js` mantiene, deliberadamente separados de `DETERMINISTIC_PROPERTIES`, los nombres de `SEMANTIC_PROPERTIES_REFERENCE` -- nunca redefinidos ni evaluados por el runner (adjudicaci\'f3n humana vs. LLM auditor calibrado sigue **PENDIENTE_DE_DISENO**, ver `contract-manifest.json`). Los `efectosProhibidos` de cada trayectoria (texto libre) quedan siempre marcados `NO_EVALUABLE_EN_RUNNER_CORE` -- cuando se verifican, es directamente en el archivo de integraci\'f3n, nunca por el core.\
+\
+### Hallazgo de esta revisi\'f3n -- T10 no declara retry\
+\
+A diferencia de T6/T7/T9, T10 (`27dd14a`) no declara `accionSistema:'RETRY_TURNO_CLIENTE'` ni la propiedad `idempotencia` en `trajectories.js` -- su foco declarado es aislamiento de identidad entre reparaciones S1-R, no retry. La verificaci\'f3n de retry para T10 se hizo como comprobaci\'f3n ADICIONAL, directa contra el Writer, fuera del contrato/runner -- documentado en el propio archivo de integraci\'f3n, nunca fabricado como si el contrato lo exigiera.\
+\
+### Estado de D1, S1-C y Modo B\
+\
+Sin cambios respecto a los reportes 17-20: D1 (m\'ednima y D1.7-A) sigue sin ning\'fan consumidor productivo real. S1-C y "Modo B" aparecen \'daNICAMENTE como exclusiones de alcance en comentarios de c\'f3digo (Incrementos S1-R 1-4, integraci\'f3n T10) -- ninguno de los dos tiene definici\'f3n can\'f3nica en `Project OS`, ni c\'f3digo, ni schema: son nombres reservados, nunca abiertos ni implementados.\
+\
+### Clasificaci\'f3n global de este bloque\
+\
+`CONTRATO_TRANSFORMACIONAL_T1_T10_MATERIALIZADO_CON_9_TRAYECTORIAS_EJECUTADAS_EN_WRITER_SQLITE_Y_LIMITACIONES_EXPLICITAS` -- nunca `CERTIFICACION_E2E_COMPLETA`: quedan precondiciones fuera del veredicto, propiedades sem\'e1nticas sin adjudicar, y efectos prohibidos sin evaluar por el core.\
+\
+## Decisiones de los reportes 17-20 (esta sesi\'f3n)\
+\
+- **Reporte 17** (`045ec1d`) \'97 cierra la frontera Movimiento\uc0\u8594 D1: `proyectarMovimientosLegalesDestino` decora el \'fanico candidato certificado con los metadatos que D1 necesita (`capacidadesDireccion`/`tipoRespuestaEsperada`/`consumeOportunidadInterpretativa`), sin ampliar la cantidad de candidatos (sigue siendo 0-1). El universo multi-candidato queda expl\'edcitamente pendiente de autorizaci\'f3n de producto \'97 no descartado, no implementado. Certifica y compromete D1.7-A como capacidad aislada.\
+- **Reporte 18** (`a068003`) \'97 construye la costura Movimiento\uc0\u8594 D1\uc0\u8594 Writer como autoridad de continuidad sobre el candidato ya certificado, sin s\'edntesis, sin selecci\'f3n multi-candidato.\
+- **Reporte 19** (`fa15cdb`) \'97 retira esa costura del Writer (no el m\'f3dulo, no las pruebas) tras auditor\'eda propia: con el \'fanico productor de deuda en alcance, D1 confirma CONTINUAR el 100% de las veces con datos productivos reales \'97 costura correcta pero circular hoy. Clasificada como **costura inerte valiosa**, no como capacidad productiva.\
+- **Reporte 20** (`0b0abe2`) \'97 corrige el diagn\'f3stico inicial de "tres escritores independientes de `protocoloEstado`": `decidirProtocolo` ya era la autoridad \'fanica de decisi\'f3n en ambos flujos. El defecto real, m\'e1s estrecho, era la duplicaci\'f3n textual de dos condiciones de suficiencia (ganada/perdida) entre `decidirProtocolo` (post-turno) y `determinarEstadoProtocolarEfectivo` (pre-turno) \'97 unificadas en `evaluarSenalDeSuficiencia`, una se\'f1al pura compartida.\
+\
+## Riesgos abiertos no autorizados (post `circulomejora006`)\
+\
+Registrados como hallazgos de auditor\'eda. Ninguno constituye una tarea autorizada \'97 cada uno requerir\'eda su propia decisi\'f3n expl\'edcita antes de tocarse.\
+\
+1. **Reachability de la rama de obsolescencia relacional** (`determinarEstadoProtocolarEfectivo`, correcci\'f3n "relaci\'f3n transformacional confirmada dej\'f3 de ser vigente"): el \'fanico llamador real encontrado la alimenta con una sem\'e1ntica distinta a la que su propio docstring describe. No confirmado si es c\'f3digo vivo o muerto. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+2. **Transacci\'f3n separada del flujo DESTINO** (`_procesarValidacionRelacionTransformacionalDestino` persiste en su propia `unitOfWork.ejecutar`, distinta de `_confirmarInteraccion`): decisi\'f3n ya unificada (ambas llaman a `decidirProtocolo`), pero la persistencia todav\'eda ocurre por dos caminos transaccionales distintos. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+3. **Literal hardcodeado de recuperaci\'f3n idempotente** (`_recuperarOCompletarConvergenciaTransformacional` escribe `'LISTO_PARA_SINTESIS'` como string literal, no la constante `PROTOCOLO_ESTADOS.LISTO_PARA_SINTESIS`, y sin invocar `decidirProtocolo`): replica una decisi\'f3n ya tomada en un intento anterior, no decide una nueva \'97 bajo riesgo, cosm\'e9tico. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+4. **Doble definici\'f3n de "listo para cerrar"**: `GrafoProyeccion` (suficiencia por cobertura sem\'e1ntica, activa en producci\'f3n) y `BaseDefendibleDestinoPolicy` (defendibilidad + deuda material, aislada) responden la misma pregunta con mecanismos independientes que nunca se consultan entre s\'ed. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+5. **Fidelidad entre contenido autorizado y mensaje visible**: `protocoloSintesisVigente.texto`/la Presentaci\'f3n estructurada son la fuente autorizada, pero lo que el experto confirma en `ESPERANDO_CONFIRMACION` es `parsed.mensaje`, redactado libremente por el LLM, sin verificaci\'f3n de que coincida con el contenido autorizado. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+6. **Clasificaci\'f3n confirma/corrige/rechaza delegada al LLM**: `parsed.clasificacion_respuesta` se valida solo en forma (`validarClasificacion`), nunca en correcci\'f3n \'97 no existe una autoridad independiente que verifique que el LLM interpret\'f3 bien la respuesta del experto. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+7. **Identidad causal / obligaciones abiertas** (`ObligacionesAbiertasDestinoProjection.js` como fuente de deuda independiente para D1): no construida \'97 es el prerrequisito para que la costura del reporte 19 deje de ser circular. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+8. **Universo multi-candidato de Movimiento**: no existe hoy ninguna regla estructural dentro de `decidirMovimientoDestino` que enumere movimientos legalmente equivalentes para el mismo estado \'97 condici\'f3n expl\'edcita para que D1.7-A opere sobre m\'e1s de un candidato. Diferido hasta evidencia productiva de que el universo 0-1 limita una decisi\'f3n real de C\'edrculo. ESTADO: REGISTRADO_NO_AUTORIZADO.\
+\
+---\
+\
+# Arquitectura\
+\
+Ver **ARCHITECTURE.md** para las autoridades, contratos e invariantes vigentes \'97 incluye la secci\'f3n dedicada al Grafo de Conocimiento vivo.\
+\
+Ver **SYSTEM_MAP.md** para el mapa de componentes a alto nivel.\
+\
+**Nota (2026-08-01):** ni `ARCHITECTURE.md` ni `SYSTEM_MAP.md` fueron auditados ni actualizados en esta revisi\'f3n \'97 cubren, como m\'ednimo, hasta el cierre de Etapa 3. Su alineaci\'f3n con `circulomejora006` no ha sido verificada.\
+\
+---\
+\
+# Frontend\
+\
+Baselines congelados (no se modifican):\
+\
+- `circulo_v0.html`\
+- `circulo_e2e.html`\
+\
+Artefacto de integraci\'f3n actual:\
+\
+- `circulo_v0_bridge.html`, regenerado por `build_bridge.js`.\
+\
+El bridge usa `POST /grammar-turn` durante cada turno de las 5 gram\'e1ticas, con un body limitado a `\{sessionId, turnoClienteId, mensajeUsuario\}`. No dispara el downstream \'97 solo lo espera y lo renderiza.\
+\
+Desde Etapa 2: el bridge intercepta `kickoffState()` para mostrar un saludo inicial fijo en una sesi\'f3n nueva, sin llamar al LLM ni generar un Turno.\
+\
+MD5 del baseline `circulo_v0.html`, verificado tras cada regeneraci\'f3n: `b0f6d71c99003727a19c01e1b72deb96`.\
+\
+**Correcci\'f3n post-Etapa 3 (saneamiento, ver m\'e1s abajo):** la prueba de reproducibilidad del bridge (`circulo_v0_bridge.html` regenerado byte-id\'e9ntico desde `build_bridge.js`) dej\'f3 de comparar `API_BASE` contra un valor hardcodeado (`http://localhost:3000`, ya obsoleto) y contra s\'ed misma (circular), y pas\'f3 a usar una expectativa independiente (`CIRCULO_BACKEND_ORIGIN_CANONICO`) \'97 ver commit `fa15cdb`'s predecesor de saneamiento.\
+\
+---\
+\
+# Configuraci\'f3n \'97 flags de arranque\
+\
+- `CIRCULO_PROGRESS_PROTOCOL_V2` \'97 `true` activa `ProgresoConversacionalPolicy` como autoridad de cierre (en vez de `GatePolicy`).\
+- `CIRCULO_KNOWLEDGE_GRAPH_ENABLED` \'97 `true` activa el Grafo de Conocimiento vivo como objeto central de EXPLORANDO. Requiere `CIRCULO_PROGRESS_PROTOCOL_V2=true` \'97 el bootstrap rechaza la combinaci\'f3n inversa expl\'edcitamente.\
+- Sin definir ninguno de los dos: comportamiento legacy, sin cambios respecto a antes de Etapa 1.\
+\
+---\
+\
+# Calidad del proyecto\
+\
+**Suite actual (verificada 2026-08-03, tras la integraci\'f3n de T10 y el cierre administrativo del bloque T1-T10):**\
+\
+- Comando de descubrimiento (`for f in tests/*.js`): 171 archivos encontrados.\
+- De esos, 2 son scripts CLI auxiliares (`cross_process_downstream_dispatcher.js`, `cross_process_writer.js`) \'97 exigen argumentos de l\'ednea de comandos, no son tests, nunca deben contarse como fallo de suite.\
+- 169 tests reales bajo la convenci\'f3n oficial del repositorio.\
+- 167 pasan.\
+- 2 fallas \'97 las MISMAS dos preexistentes de la revisi\'f3n anterior, sin cambios, sin intento de correcci\'f3n: `test_nueva_sesion_cognitiva.js` y `test_sintesis_interpretativa_gobernada.js`.\
+- Ning\'fan fallo nuevo introducido por ning\'fan commit de `circulomejora006` desde el reporte20 (verificado expl\'edcitamente contra la suite completa tras el commit de integraci\'f3n de T10, `27dd14a`).\
+\
+**Suite verificada 2026-08-01, tras el reporte 20 (cifras de esa revisi\'f3n, conservadas como antecedente inmediato):**\
+\
+- 152 archivos de test.\
+- 150 pasan.\
+- 2 fallas \'97 ambas preexistentes y ajenas a todo el trabajo de `circulomejora006` (confirmado: archivos sin diferencia respecto a su estado en `HEAD` antes de esa sesi\'f3n): `test_nueva_sesion_cognitiva.js` (1 de 5 casos) y `test_sintesis_interpretativa_gobernada.js` (1 de 12 casos).\
+- Ning\'fan fallo nuevo introducido por ning\'fan commit de esa sesi\'f3n (verificado expl\'edcitamente contra la suite completa tras cada commit).\
+\
+**Suite hist\'f3rica (verificada al cierre de Etapa 3, 2026-07-22 \'97 cifras ya obsoletas, conservadas como antecedente):**\
+\
+- 80 archivos de test, del orden de 2900 casos de prueba (`assert()`), 6 fallas del mismo baseline conocido desde antes de Etapa 3 (2 scripts de soporte CLI no son tests fallidos; 4 fallas reales de integraci\'f3n bridge/frontend). De esas 4, 3 (`test_bridge_confirmacion_no_render.js`, `test_grammar_transition.js`, `test_grammar_turn_bridge.js`) fueron corregidas durante el saneamiento posterior a la intervenci\'f3n de Gemini (ver m\'e1s abajo) y hoy pasan; `test_nueva_sesion_cognitiva.js` sigue siendo una falla preexistente, ahora documentada junto con `test_sintesis_interpretativa_gobernada.js` (esta \'faltima no estaba en la lista de Etapa 3 \'97 su origen no fue investigado en esta revisi\'f3n).\
+\
+E2E real (no mock) ejecutado contra Gemini durante Etapa 2 y Etapa 3 \'97 ver antecedente hist\'f3rico sin cambios, m\'e1s abajo en este mismo documento no repetido para brevedad (ninguna corrida E2E real nueva se ejecut\'f3 durante `circulomejora006`; toda su verificaci\'f3n fue de suite local).\
+\
+Todo cambio nuevo debe preservar esta estabilidad.\
+\
+---\
+\
+# Repositorio\
+\
+Rama:\
+\
+`audit/gemini-clean`\
+\
+HEAD:\
+\
+`27dd14a` \'97 "circulomejora006_integracion_real_de_t10_aislamiento_entre_reparaciones_s1r(1/1): ejecuta T10 (nuevo rechazo total de la sintesis de C abre R(C)=R_PRIME, sin reutilizar/reabrir R(A) ya RESUELTA) contra Writer/SQLite reales" \'97 commit anterior de referencia: `0b0abe2` (reporte20, ultimo HEAD documentado antes de esta revision).\
+\
+Merge-base con `main`:\
+\
+`ff37668`\
+\
+Cambios pendientes de commit:\
+\
+Ninguno. \'c1rbol de trabajo limpio (verificado con `git status` en esta misma revisi\'f3n).\
+\
+Stash activo:\
+\
+`stash@\{0\}: "gemini-d1-multicandidato-unstaged-retirado"` \'97 la ampliaci\'f3n multi-candidato de `proyectarMovimientosLegalesDestino` introducida por una intervenci\'f3n de Gemini no autorizada, retirada del \'e1rbol de trabajo pero conservada en stash por si se necesitara recuperar el diff exacto. No aplicada. No descartada.\
+\
+**Antecedente hist\'f3rico (previo a esta revisi\'f3n, ya superado):** rama `main`, \'faltimo commit real `f07354f` ("Restaura D-037 y controla la reacci\'f3n visible tras un rechazo total", cierre de Etapa 3, Incremento 8). Ese commit y el tag `v0.7.0` (sobre `5264c5c`) siguen siendo anteriores a todo el trabajo posterior \'97 no lo cubren.\
+\
+---\
+\
+# Seguridad\
+\
+No hay secretos versionados (API keys, tokens, passwords, archivos `.env`).\
+\
+---\
+\
+# Etapa activa\
+\
+Ninguna Etapa formal, en el sentido de Incrementos numerados y cierre expl\'edcito. S\'ed hubo trabajo real sustancial (71 commits `circulomejora006`) sin esa ceremonia \'97 ver "Evoluci\'f3n posterior a Etapa 3", arriba.\
+\
+Consultar **NEXT_TASK.md**: el siguiente incremento productivo requiere una decisi\'f3n expl\'edcita del usuario sobre qu\'e9 capacidad del producto mejorar \'97 ning\'fan incremento est\'e1 autorizado todav\'eda.\
+\
+---\
+\
+# Restricciones activas\
+\
+No modificar:\
+\
+- `circulo_v0.html`\
+- `circulo_e2e.html`\
+\
+No romper la suite oficial de tests (171 archivos descubiertos, 169 tests reales \'97 el baseline actual de 2 fallas ya documentado en "Calidad del proyecto", ninguna nueva).\
+\
+No introducir nuevas dependencias sin necesidad demostrada.\
+\
+No duplicar l\'f3gica existente.\
+\
+No abrir un nuevo incremento ni una nueva etapa por inferencia \'97 requiere autorizaci\'f3n expl\'edcita.\
+\
+Reutilizar siempre componentes antes de crear otros nuevos.\
+\
+No reabrir, por inferencia, ninguno de los riesgos registrados en "Riesgos abiertos no autorizados" \'97 cada uno requiere su propia autorizaci\'f3n expl\'edcita.\
+\
+---\
+\
+# Deudas y bloqueos reales (antecedente \'97 Etapa 1, no reverificado en esta revisi\'f3n)\
+\
+1. **`POST /pipeline \{resume:true\}`** contin\'faa temporalmente como entrada legacy del flujo HITL. No retirar ni redise\'f1ar sin autorizaci\'f3n.\
+2. **`circulo_v0.html` conserva estructuras internas legacy** (`currentStateIdx++`, `understood`, `kickoffState()`). El bridge neutraliza su autoridad sin poder eliminarlas \'97 el baseline es inmutable.\
+3. **Doble viaje `POST /grammar-turn` \uc0\u8594  `GET /session`.** No implementado \'97 no implementar sin autorizaci\'f3n.\
+4. **Enmascaramiento legacy de fallos de LLM como HTTP 200** (`responderComoGateFallidoLegado` en `CognitivoApiServer.js`). El cierre de Etapa 1 fue expl\'edcitamente acotado a autoridad cognitiva y persistencia \'97 NO resuelve esta deuda. Sigue abierta. No corregir ni eliminar sin autorizaci\'f3n.\
+5. Separar hidrataci\'f3n cognitiva de hidrataci\'f3n del transcript \'97 optimizaci\'f3n futura, sin urgencia, no autorizada.\
+6. `POST /pipeline \{resume:true\}` no est\'e1 conectado a las transiciones de `pipelineStatus` \'97 gap documentado, menor.\
+7. **Circuito de resiliencia/observabilidad entre turnos del grafo** \'97 clasificado expl\'edcitamente como resiliencia/observabilidad, no como capacidad cognitiva pendiente. No bloquea nada. No implementar sin autorizaci\'f3n.\
+8. Las fallas de integraci\'f3n bridge/frontend documentadas al cierre de Etapa 3 \'97 3 de las 4 corregidas durante el saneamiento posterior a Gemini (ver "Frontend", arriba); `test_nueva_sesion_cognitiva.js` sigue sin investigar.\
+9. **Comentario exploratorio de `EXPLORANDO` con vocabulario ocasionalmente elevado** \'97 nunca se confirma, promueve ni cruza. Observaci\'f3n de calidad, no bloqueo. No tratar con la misma disciplina de la s\'edntesis sin autorizaci\'f3n.\
+\
+Esta lista no fue reverificada contra el c\'f3digo actual en esta revisi\'f3n \'97 se conserva como antecedente. Los riesgos nuevos, s\'ed verificados en esta revisi\'f3n, est\'e1n en "Riesgos abiertos no autorizados", arriba.\
+\
+---\
+\
+# Regla de continuidad\
+\
+Este documento describe \'fanicamente el estado del proyecto.\
+\
+La tarea actualmente autorizada se define exclusivamente en **NEXT_TASK.md**.\
+\
+Las etapas cerradas no deben reabrirse sin evidencia de un defecto real, y ninguna deuda ni riesgo registrado se resuelve por inferencia \'97 cada uno requiere su propia autorizaci\'f3n expl\'edcita.\
+\
+Las decisiones arquitect\'f3nicas pertenecen a **DECISIONS.md**. Los reportes 17-20 de `circulomejora006` est\'e1n documentados con su razonamiento completo en los mensajes de los commits `045ec1d`, `a068003`, `fa15cdb` y `0b0abe2` \'97 no duplicados aqu\'ed ni en `DECISIONS.md` para evitar una segunda fuente de verdad que pueda divergir.\
+\
+La estructura del sistema pertenece a **SYSTEM_MAP.md** y **ARCHITECTURE.md**.\
+\
+El flujo oficial de trabajo pertenece a **PROJECT_WORKFLOW.md**.\
+}

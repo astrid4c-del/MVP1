@@ -1,0 +1,4 @@
+{
+  "installCommand": "echo 'frontend estático — no hay dependencias que instalar'",
+  "buildCommand": "mkdir -p public/raw && cp circulo_v0_bridge.html public/index.html && cp circulo_v0_bridge_raw.html public/raw/index.html"
+}

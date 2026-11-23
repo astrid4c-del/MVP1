@@ -1,0 +1,194 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 Project Workflow\
+\
+Versi\'f3n: 1.0\
+\
+Estado: Vivo\
+\
+\'daltima actualizaci\'f3n: 2026-07-18\
+\
+---\
+\
+# Objetivo\
+\
+Este documento define la pol\'edtica operativa que el proyecto seguir\'e1 **de ahora en adelante** \'97 qu\'e9 pasos sigue una implementaci\'f3n, en qu\'e9 orden, y qui\'e9n actualiza qu\'e9.\
+\
+Es prescriptivo, no un relato hist\'f3rico. No describe c\'f3mo se trabaj\'f3 durante Etapa 1 ni ninguna etapa anterior \'97 varias de sus reglas (en particular la unidad de trabajo por conversaci\'f3n) formalizan una disciplina que Etapa 1 no sigui\'f3 de forma estricta. Se adopta a partir de este documento, hacia adelante.\
+\
+No describe arquitectura \'97 eso pertenece a **ARCHITECTURE.md** y **SYSTEM_MAP.md**.\
+\
+No describe el estado actual ni la tarea activa \'97 eso pertenece a **CURRENT_STATE.md** y **NEXT_TASK.md**.\
+\
+No es un plan de una fase espec\'edfica \'97 para eso existen documentos de plan puntuales (p. ej. **PHASE_6_IMPLEMENTATION_PLAN.md**, hist\'f3rico, no reutilizado como regla permanente).\
+\
+---\
+\
+# Flujo oficial\
+\
+```\
+Implementaci\'f3n\
+      \uc0\u8595 \
+   Tests\
+      \uc0\u8595 \
+Cierre de etapa (o incremento/Goal)\
+      \uc0\u8595 \
+Actualizar Project OS\
+      \uc0\u8595 \
+Actualizar memoria de Claude\
+      \uc0\u8595 \
+   Commit\
+      \uc0\u8595 \
+Siguiente etapa\
+```\
+\
+Ning\'fan paso se salta. Ning\'fan paso se adelanta al anterior.\
+\
+"Cierre de etapa" requiere aprobaci\'f3n expl\'edcita del usuario \'97 nunca se declara por inferencia.\
+\
+"Siguiente etapa" nunca comienza autom\'e1ticamente despu\'e9s de un commit \'97 requiere su propia autorizaci\'f3n expl\'edcita, aunque el paso anterior haya sido aprobado.\
+\
+---\
+\
+# Project OS vs. memoria de Claude \'97 prop\'f3sitos distintos\
+\
+## Project OS (esta carpeta)\
+\
+Es la documentaci\'f3n oficial del proyecto.\
+\
+Cualquier persona, o cualquier IA \'97 no solo Claude \'97 deber\'eda poder entender C\'edrculo leyendo \'fanicamente estos documentos.\
+\
+Es la fuente de verdad. Sobrevive a cualquier herramienta espec\'edfica.\
+\
+Se actualiza como un paso expl\'edcito del flujo oficial, no como un efecto secundario incidental de una conversaci\'f3n.\
+\
+## Memoria de Claude\
+\
+Es operativa. Ayuda a Claude a trabajar con continuidad entre conversaciones \'97 contexto de trabajo, h\'e1bitos de colaboraci\'f3n, detalles que no pertenecen a la documentaci\'f3n oficial del producto.\
+\
+No debe convertirse en la \'fanica fuente de conocimiento del proyecto. Si algo importante solo vive en la memoria de Claude y no en Project OS, ese es un defecto a corregir, no un atajo aceptable.\
+\
+Esta separaci\'f3n mantiene la independencia del proyecto respecto a cualquier IA espec\'edfica \'97 uno de los objetivos originales al crear Project OS.\
+\
+---\
+\
+# Unidad oficial de trabajo (a partir de ahora)\
+\
+```\
+Una conversaci\'f3n\
+      \uc0\u8595 \
+Un incremento (o Goal)\
+      \uc0\u8595 \
+Un checkpoint\
+      \uc0\u8595 \
+Fin.\
+```\
+\
+Esta es la unidad que se buscar\'e1 seguir de aqu\'ed en adelante \'97 no una descripci\'f3n de c\'f3mo se ejecut\'f3 Etapa 1, que abarc\'f3 varios incrementos dentro de una misma conversaci\'f3n.\
+\
+Si un incremento supera el alcance de una sola sesi\'f3n, se divide en tareas m\'e1s peque\'f1as antes de continuar \'97 nunca se pide "toda la fase" o "toda la etapa" de una sola vez.\
+\
+---\
+\
+# Antes de comenzar un incremento\
+\
+Responder \'fanicamente:\
+\
+- Estado recibido.\
+- Alcance exacto, tal como fue autorizado \'97 sin ampliarlo ni interpretarlo.\
+- Archivos necesarios.\
+- Dependencias.\
+- Plan de implementaci\'f3n.\
+\
+No comenzar a escribir c\'f3digo ni documentaci\'f3n antes de esto si el alcance no est\'e1 claro.\
+\
+---\
+\
+# Durante el incremento\
+\
+Modificar \'fanicamente lo necesario para el alcance autorizado.\
+\
+Si aparece un hallazgo fuera de alcance (deuda, bug, oportunidad de mejora): registrarlo, no corregirlo autom\'e1ticamente, y continuar con el alcance original \'97 salvo que bloquee el incremento en curso, en cuyo caso se detiene y se explica antes de continuar.\
+\
+Si aparece la necesidad de un cambio arquitect\'f3nico no autorizado: detenerse, explicar el conflicto, esperar aprobaci\'f3n.\
+\
+---\
+\
+# Cierre de un incremento\
+\
+Un incremento termina cuando:\
+\
+- El c\'f3digo est\'e1 implementado.\
+- Los tests dirigidos est\'e1n en verde.\
+- La deuda encontrada (si la hay) qued\'f3 registrada, no corregida por inferencia.\
+\
+---\
+\
+# Cierre de una etapa\
+\
+Una etapa termina \'fanicamente cuando:\
+\
+- Todos sus incrementos est\'e1n terminados.\
+- La suite completa est\'e1 en verde.\
+- El usuario aprueba expl\'edcitamente el cierre.\
+- El alcance del cierre queda declarado con precisi\'f3n \'97 qu\'e9 queda resuelto y qu\'e9 deuda sobrevive sin resolver (ver D-026 en **DECISIONS.md**). Un cierre nunca se presenta como total si hay deuda registrada sin resolver.\
+\
+Despu\'e9s de la aprobaci\'f3n, y antes de cualquier commit:\
+\
+1. Actualizar Project OS \'97 los documentos que correspondan, sin duplicar informaci\'f3n entre ellos.\
+2. Actualizar la memoria de Claude, alineada con lo aprobado \'97 sin introducir informaci\'f3n nueva ni reinterpretar decisiones.\
+3. Solo entonces, si el usuario lo autoriza, commitear.\
+\
+---\
+\
+# Suite completa\
+\
+Se ejecuta al cerrar un incremento y, obligatoriamente, al cerrar una etapa.\
+\
+No es necesario ejecutarla despu\'e9s de cada cambio menor dentro de un incremento en curso.\
+\
+---\
+\
+# Deuda t\'e9cnica\
+\
+Toda deuda encontrada se clasifica como:\
+\
+1. Bug.\
+2. Refactor.\
+3. Mejora futura.\
+4. Deuda metodol\'f3gica.\
+\
+Se registra en **CURRENT_STATE.md** (secci\'f3n "Deudas y bloqueos reales") y, si refleja una decisi\'f3n arquitect\'f3nica nueva, tambi\'e9n en **DECISIONS.md**.\
+\
+No se corrige autom\'e1ticamente por estar registrada \'97 cada correcci\'f3n requiere su propia autorizaci\'f3n expl\'edcita.\
+\
+---\
+\
+# Qu\'e9 NO hacer\
+\
+Nunca pedir "implementa toda la fase" o "toda la etapa" de una sola vez.\
+\
+Nunca recorrer el repositorio completo sin una tarea definida.\
+\
+Nunca declarar una etapa cerrada sin distinguir qu\'e9 deuda sobrevive.\
+\
+Nunca dejar que Project OS y la memoria de Claude diverjan sobre el mismo hecho \'97 si una correcci\'f3n aplica a uno, se sincroniza tambi\'e9n en el otro.\
+\
+Nunca commitear sin autorizaci\'f3n expl\'edcita, incluso despu\'e9s de un cierre de etapa aprobado.\
+\
+---\
+\
+# Nueva conversaci\'f3n\
+\
+Al retomar el proyecto en una conversaci\'f3n nueva, leer en este orden:\
+\
+1. **CURRENT_STATE.md** \'97 estado real del sistema.\
+2. **NEXT_TASK.md** \'97 tarea autorizada (o confirmaci\'f3n de que no hay ninguna).\
+3. **MASTER_ROADMAP.md** \'97 solo si se necesita contexto de fases/etapas anteriores.\
+\
+No es necesario leer **ARCHITECTURE.md**, **SYSTEM_MAP.md** ni **DECISIONS.md** completos salvo que la tarea lo requiera \'97 son referencia, no lectura obligatoria de arranque.\
+}

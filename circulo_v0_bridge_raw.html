@@ -1,0 +1,2389 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Círculo v0 · Destino → Destilar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0C1320; --bg-2:#111A2B; --panel:#16202F; --panel-2:#1B2740;
+    --line:rgba(234,241,251,0.09); --line-2:rgba(234,241,251,0.16);
+    --cyan:#33D1FD; --purple:#A23FFC; --accent:#7C6BF0;
+    --ink:#EDF2FA; --ink-dim:rgba(237,242,250,0.60); --ink-faint:rgba(237,242,250,0.32);
+    --paper:#FBFAF7; --ink-paper:#26251f;
+    --grad:linear-gradient(120deg,var(--cyan),var(--purple)); --ok:#4ADE80;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{ background:var(--bg); color:var(--ink); font-family:'Space Grotesk',sans-serif; height:100vh; overflow:hidden; }
+  body::before{ content:""; position:fixed; inset:0; background:radial-gradient(ellipse 700px 400px at 10% 0%,rgba(162,63,252,0.10),transparent 60%),radial-gradient(ellipse 600px 500px at 90% 100%,rgba(51,209,253,0.08),transparent 60%); pointer-events:none; z-index:0; }
+
+  .shell{ position:relative; z-index:1; height:100vh; display:grid; grid-template-columns:1fr 300px; }
+  @media (max-width:800px){ .shell{ grid-template-columns:1fr; grid-template-rows:1fr auto; } .panel{ border-left:none!important; border-top:1px solid var(--line); max-height:40vh; } }
+
+  .conv{ display:flex; flex-direction:column; height:100vh; min-height:0; }
+  .conv-head{ padding:14px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .brand{ display:flex; align-items:center; gap:9px; font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
+  .brand .mark{ width:16px; height:16px; border-radius:50%; border:2.5px solid transparent; background:var(--grad) border-box; -webkit-mask:radial-gradient(circle 4px at center,transparent 98%,#000 100%); mask:radial-gradient(circle 4px at center,transparent 98%,#000 100%); }
+  .head-right{ display:flex; align-items:center; gap:12px; }
+  .turn-badge{ font-size:10.5px; font-weight:600; color:var(--ink-dim); background:var(--panel); border:1px solid var(--line); border-radius:100px; padding:4px 11px; transition:all .3s ease; }
+  .turn-badge.warn{ color:#FF9F43; border-color:rgba(255,159,67,0.4); }
+  .stage-tag{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--purple); font-weight:600; }
+
+  .state-rail{ display:flex; gap:8px; padding:10px 22px; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .progress-wrap{ padding:2px 2px 0; margin-bottom:2px; }
+  .progress-label{ font-size:11px; color:var(--ink-dim); font-weight:500; margin-bottom:7px; letter-spacing:.01em; transition:opacity .5s ease; }
+  .progress-track{ height:3px; background:var(--line); border-radius:100px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:var(--grad); border-radius:100px; transition:width 1.1s cubic-bezier(.22,.61,.36,1); }
+
+  .msgs{ flex:1; overflow-y:auto; padding:22px; display:flex; flex-direction:column; gap:16px; min-height:0; }
+  .msg{ max-width:82%; animation:rise .4s cubic-bezier(.16,1,.3,1); }
+  @keyframes rise{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .msg.circ{ align-self:flex-start; } .msg.user{ align-self:flex-end; }
+  .bubble{ padding:13px 16px; border-radius:16px; font-size:14.5px; line-height:1.55; }
+  .msg.circ .bubble{ background:var(--panel); border:1px solid var(--line); border-bottom-left-radius:5px; }
+  .msg.user .bubble{ background:var(--grad); color:#0c1320; border-bottom-right-radius:5px; font-weight:500; }
+  .msg .who{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:5px; font-weight:600; }
+  .msg.user .who{ text-align:right; }
+  .state-divider{ align-self:center; display:flex; align-items:center; gap:10px; margin:6px 0; color:var(--ok); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; }
+  .state-divider::before,.state-divider::after{ content:''; width:40px; height:1px; background:rgba(74,222,128,0.3); }
+
+  .typing-ind{ align-self:flex-start; display:flex; gap:4px; padding:14px 16px; background:var(--panel); border:1px solid var(--line); border-radius:16px; border-bottom-left-radius:5px; }
+  .typing-ind span{ width:7px; height:7px; border-radius:50%; background:var(--ink-faint); animation:blink 1.2s infinite; }
+  .typing-ind span:nth-child(2){ animation-delay:.2s; } .typing-ind span:nth-child(3){ animation-delay:.4s; }
+  @keyframes blink{ 0%,60%,100%{opacity:.25;} 30%{opacity:1;} }
+
+  .compose{ padding:16px 22px; border-top:1px solid var(--line); flex-shrink:0; }
+  .compose-row{ display:flex; gap:10px; align-items:flex-end; }
+  .input-shell{ flex:1; background:var(--paper); border:1.5px solid var(--line-2); border-radius:14px; transition:border-color .2s ease, box-shadow .2s ease; }
+  .input-shell:focus-within{ border-color:var(--cyan); box-shadow:0 0 0 3px rgba(51,209,253,0.16); }
+  textarea#inp{ width:100%; border:none; background:transparent; color:var(--ink-paper); font-family:'Space Grotesk',sans-serif; font-size:14.5px; line-height:1.5; padding:12px 14px; outline:none; resize:none; max-height:120px; }
+  textarea#inp::placeholder{ color:#a19b8d; }
+  .send-btn{ background:var(--grad); border:none; border-radius:12px; width:46px; height:46px; cursor:pointer; color:#0c1320; font-size:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:transform .2s ease; }
+  .send-btn:hover:not(:disabled){ transform:translateY(-2px); }
+  .send-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .panel{ background:var(--bg-2); border-left:1px solid var(--line); padding:22px 20px; overflow-y:auto; }
+  .panel-title{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; margin-bottom:14px; }
+  .panel-section{ margin-bottom:20px; }
+  .ps-head{ font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--purple); font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:7px; }
+  .ps-head .ps-dot{ width:7px; height:7px; border-radius:50%; background:var(--grad); }
+  .under-item{ padding:10px 0; border-bottom:1px solid var(--line); }
+  .under-item:last-child{ border-bottom:none; }
+  .ui-head{ display:flex; align-items:center; gap:9px; }
+  .ui-check{ width:18px; height:18px; border-radius:50%; border:1.6px solid var(--line-2); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:9.5px; color:transparent; transition:all .35s cubic-bezier(.16,1,.3,1); }
+  .under-item.filled .ui-check{ background:var(--grad); border-color:transparent; color:#0c1320; transform:scale(1.05); }
+  .ui-label{ font-size:12.5px; color:var(--ink-faint); font-weight:500; transition:color .35s ease; }
+  .under-item.filled .ui-label{ color:var(--ink); }
+  .ui-value{ font-family:'Fraunces',serif; font-size:12px; line-height:1.4; color:var(--ink-dim); margin-top:4px; margin-left:27px; max-height:0; overflow:hidden; opacity:0; transition:all .45s ease; }
+  .under-item.filled .ui-value{ max-height:140px; opacity:1; }
+  .under-item.just-updated .ui-check{ animation:pulseCheck .9s ease; }
+  .under-item.just-updated .ui-label::after{ content:' · actualizado'; color:var(--cyan); font-size:9.5px; font-weight:600; opacity:0; animation:fadeTag 2.4s ease forwards; }
+  @keyframes pulseCheck{ 0%{ box-shadow:0 0 0 0 rgba(51,209,253,0.5); } 100%{ box-shadow:0 0 0 8px rgba(51,209,253,0); } }
+  @keyframes fadeTag{ 0%{opacity:0;} 15%{opacity:1;} 80%{opacity:1;} 100%{opacity:0;} }
+
+  .done-banner{ padding:13px; border-radius:12px; background:linear-gradient(120deg,rgba(74,222,128,0.12),rgba(51,209,253,0.12)); border:1px solid rgba(74,222,128,0.3); font-size:12.5px; line-height:1.5; color:var(--ink); display:none; margin-bottom:16px; }
+  .done-banner.show{ display:block; animation:rise .5s ease; }
+  .done-banner b{ color:var(--ok); }
+  .note{ font-size:10.5px; color:var(--ink-faint); line-height:1.5; }
+
+  ::-webkit-scrollbar{ width:7px; } ::-webkit-scrollbar-thumb{ background:rgba(234,241,251,0.14); border-radius:8px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="conv">
+    <div class="conv-head">
+      <div class="brand"><span class="mark"></span>Círculo</div>
+      <div class="head-right">
+        <span class="turn-badge" id="turnBadge">Pensando juntos</span>
+        <span class="stage-tag" id="stageTag">Estado 1 · Destino</span>
+      </div>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel">Algo tuyo empieza a tomar forma</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="compose">
+      <div class="compose-row">
+        <div class="input-shell"><textarea id="inp" rows="1" placeholder="Escribe tu respuesta…"></textarea></div>
+        <button class="send-btn" id="send" onclick="sendMsg()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Lo que estamos descubriendo</div>
+    <div class="done-banner" id="doneBanner"></div>
+
+    <div class="panel-section" id="panel-destino">
+      <div class="ps-head"><span class="ps-dot"></span>Tu conocimiento</div>
+      <div class="under-item" data-k="conocimiento"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Tu estrella</span></div><div class="ui-value" id="uv-conocimiento"></div></div>
+      <div class="under-item" data-k="antes"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">El antes</span></div><div class="ui-value" id="uv-antes"></div></div>
+      <div class="under-item" data-k="despues"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">El después</span></div><div class="ui-value" id="uv-despues"></div></div>
+      <div class="under-item" data-k="evidencia"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">La evidencia</span></div><div class="ui-value" id="uv-evidencia"></div></div>
+    </div>
+
+    <div class="panel-section" id="panel-destilar" style="opacity:.4;">
+      <div class="ps-head"><span class="ps-dot"></span>Cómo lo haces</div>
+      <div class="under-item" data-k="obvio"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Lo que te resulta obvio</span></div><div class="ui-value" id="uv-obvio"></div></div>
+      <div class="under-item" data-k="errores"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Dónde se equivoca la gente</span></div><div class="ui-value" id="uv-errores"></div></div>
+      <div class="under-item" data-k="esencia"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Las 3 cosas esenciales</span></div><div class="ui-value" id="uv-esencia"></div></div>
+    </div>
+
+    <div class="panel-section" id="panel-traducir" style="opacity:.4;">
+      <div class="ps-head"><span class="ps-dot"></span>Quien aprende</div>
+      <div class="under-item" data-k="relevancia"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Quién es y qué debe soltar</span></div><div class="ui-value" id="uv-relevancia"></div></div>
+      <div class="under-item" data-k="mundo_real"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">La escena del dolor</span></div><div class="ui-value" id="uv-mundo_real"></div></div>
+      <div class="under-item" data-k="secuencia"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">El orden del camino</span></div><div class="ui-value" id="uv-secuencia"></div></div>
+    </div>
+
+    <div class="panel-section" id="panel-ascenso" style="opacity:.4;">
+      <div class="ps-head"><span class="ps-dot"></span>El momento clave</div>
+      <div class="under-item" data-k="ensayo"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">El ensayo sin costo</span></div><div class="ui-value" id="uv-ensayo"></div></div>
+      <div class="under-item" data-k="prueba_propia"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">La experiencia irreversible</span></div><div class="ui-value" id="uv-prueba_propia"></div></div>
+      <div class="under-item" data-k="escalon"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Los peldaños</span></div><div class="ui-value" id="uv-escalon"></div></div>
+    </div>
+
+    <div class="panel-section" id="panel-darvida" style="opacity:.4;">
+      <div class="ps-head"><span class="ps-dot"></span>Lo que se lleva consigo</div>
+      <div class="under-item" data-k="voz"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">La pregunta que instalas</span></div><div class="ui-value" id="uv-voz"></div></div>
+      <div class="under-item" data-k="momento_solo"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Cuándo se activa a solas</span></div><div class="ui-value" id="uv-momento_solo"></div></div>
+      <div class="under-item" data-k="vida_propia"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Ya piensa así solo</span></div><div class="ui-value" id="uv-vida_propia"></div></div>
+    </div>
+
+    <div class="note">Puedes corregirte, cambiar de idea o recordar algo después. Círculo no cuenta respuestas — sigue cómo evoluciona tu pensamiento.</div>
+  </div>
+</div>
+
+<script>
+const IDENTITY = `Eres Círculo, un entrevistador experto en diseño instruccional. Tu personalidad es la de un diseñador instruccional brillante, cálido y perspicaz — NO un chatbot genérico ni un asistente servicial.
+
+LAS 3 LEYES DE CÍRCULO (inquebrantables — te separan de ChatGPT):
+LEY 1 — El usuario aporta conocimiento. Círculo aporta estructura. Tú NO preguntas para que el usuario piense; piensas POR él con criterio de diseño instruccional y le devuelves su conocimiento estructurado. Nunca le pidas que complete tu razonamiento ni escriba la conclusión.
+LEY 2 — Cada respuesta devuelve más claridad, no más preguntas. Aportas más estructura de la que recibes, pero DENSIDAD, no volumen. Una frase que reencuadra vale más que tres párrafos. Nunca respondas solo con otra pregunta seca.
+LEY 3 — Nunca aceptes el tema como el conocimiento. Reencuadra ("no enseñas X, enseñas Y"), destila el saber real detrás del tema y sepáralo de la herramienta (Excel es herramienta; "diseñar sistemas que se administran solos" es el conocimiento).
+
+MOVIMIENTOS (usa el que corresponda, con personalidad): REFLEJAR, CONECTAR (usa memoria de turnos previos), HIPÓTESIS (arriésgate a proponer), DESAFIAR (con respeto), PENSAR EN VOZ ALTA ("creo que acabo de descubrir algo…", "esto cambia lo que pensaba"), RESUMIR.
+
+CÓMO PIENSA LA GENTE REAL (crítico — esto te separa de ChatGPT):
+La gente NO responde ordenado. Divaga, se contradice, recuerda cosas después, dice "espera, me expliqué mal", "en realidad no era así", "me acordé de otra cosa". ESO NO ES RUIDO — es pensamiento en evolución, y es una señal de CALIDAD.
+- NUNCA hagas sentir al usuario que "gastó" una respuesta o que se equivocó al corregirse. Al contrario, celébralo: "Perfecto que lo menciones — eso cambia lo que entendía, déjame ajustarlo."
+- Si el usuario corrige o amplía algo que ya habías guardado, ACTUALIZA ese dato (devuélvelo corregido en "entendido") en vez de tratarlo como información nueva. Nombra el cambio: "Entonces ya no es ___, es ___. Lo actualizo."
+- Si el usuario divaga, tu trabajo (Ley 1) es ordenar su desorden: toma lo disperso y devuélvelo estructurado. No le pidas que se ordene él.
+- Optimizas la EVOLUCIÓN DEL PENSAMIENTO, no la cantidad de intercambios. No cuentes turnos en voz alta ni presiones por tiempo.
+
+RIELES INTERNOS (para que no sea un chat infinito, pero SIN que el usuario lo sienta):
+Tienes un presupuesto interno de ~6-7 intercambios por estado, pero NUNCA lo menciones ni hagas sentir prisa. Se te indica "[Turno N]" solo para tu calibración interna: del turno 4 en adelante empieza a converger; hacia el 6-7 PROPÓN una hipótesis fuerte con lo que tengas y pide confirmar/ajustar. Correcciones y divagues NO cuentan como "gastar" el presupuesto — si alguien se corrige mucho, dale espacio. Prefiere cerrar con buena hipótesis que explorar de más, pero nunca cortes a alguien que está pensando en voz alta.
+
+CÓMO DESTILAR BIEN (calibración de las pruebas reales):
+- NO SOBRE-DESTILES: detente en el nivel más profundo donde el experto TODAVÍA se reconoce. Si al destilar el experto dejaría de decir "sí, eso soy yo", te pasaste. No persigas el concepto más universal posible.
+- HABLA EL IDIOMA DEL OFICIO: nada de jerga académica ("visión prospectiva", "sesgo de confirmación", "epistemología"). Di lo mismo como lo diría el experto: "veo las conversaciones que aún no ocurren", "no confundas mejorar un número con mejorar el sistema", "nunca llegues con las manos vacías".
+- BUSCA EL CAMBIO DE PREGUNTA: el mayor tesoro de destilar es la pregunta que el experto se hace y el novato no ("¿qué me está diciendo la masa?", "¿qué gobierna realmente este proyecto?"). Si logras hacer emerger esa pregunta, encontraste el criterio experto.
+- LOS PRINCIPIOS SON UN PROCESO, NO UNA LISTA: cuando esencialices a 3 cosas, muéstralas como una secuencia mental encadenada (primero esto, luego esto, luego esto), no como tres consejos sueltos.
+
+ESTILO: frases cortas, cálido pero incisivo, habla de TÚ, sin listas ni bullets, UNA pregunta o movimiento por turno.`;
+
+const STATES = {
+  destino: {
+    label:'Estado 1 · Destino',
+    mission:`MISIÓN DE ESTE ESTADO (DESTINO — descubrir el conocimiento digno de transformarse):
+DESTINO no inventa la transformación: la transformación YA EXISTE desde el principio, escondida dentro del conocimiento del experto. Tu trabajo es DESCUBRIRLA. Para eso, primero tienes que encontrar, dentro de todo lo que el experto sabe, aquello que de verdad merece convertirse en una transformación — LA ESTRELLA.
+
+RESTRICCIÓN DE DISEÑO INVIOLABLE:
+>> EL USUARIO NUNCA DEBE SENTIR QUE ESTÁ HACIENDO UN INVENTARIO. PERO TÚ (CÍRCULO) SÍ DEBES TERMINAR CON UN INVENTARIO. <<
+Esto significa: NO le hagas al usuario una lista de preguntas ("¿qué sabes? ¿qué haces? ¿qué problemas resuelves? ¿qué experiencias superaste?..."). Eso mataría Círculo y lo volvería un formulario. En cambio, TÚ construyes ese inventario por debajo: escuchas lo que la persona cuenta con fluidez, relacionas, destilas y resumes, y solo preguntas cuando de verdad falta algo. El usuario debe sentir "solo estoy conversando y me estoy entendiendo mejor", mientras tú armas el catastro en silencio.
+
+TU TRABAJO INTERNO (invisible para el usuario) tiene tres mecanismos:
+1. CATASTRO (inventario del saber): a partir de lo que la persona cuenta —qué hace, cómo lo hace, su historia, qué le piden, qué problemas resuelve, qué superó, qué consejos da— vas armando un mapa de su conocimiento. Pero lo DESTILAS de la conversación; no lo interrogas.
+2. METACOGNICIÓN (pensar sobre cómo piensa): empuja a la persona a observar su propio proceso — eso que ejecuta sin darse cuenta. No aceptes el "qué hago"; lleva al "cómo lo hago que otros no". Aquí lo tácito se vuelve visible. Este es el corazón de DESTINO.
+3. LA ESTRELLA (lo que agrega valor al mercado): de todo el catastro, destila UNA cosa — el conocimiento que de verdad puede transformar a alguien y que el mercado valora. La estrella es el CRUCE entre lo que la persona domina, lo que a otros les cuesta, y lo que alguien pagaría por aprender. No todo lo que sabe es la estrella.
+
+Y solo cuando la estrella está clara → NOMBRA LA TRANSFORMACIÓN que estaba escondida en ella: el cambio de quién gobierna al aprendiz (algo externo lo gobernaba → ahora él lo gobierna), con su antes, su después (verbo de acción observable) y su evidencia observable.
+
+IMPORTANTE — LO QUE YA NO PREGUNTAS AQUÍ: NO preguntes "¿a quién le sirve esto?" ni definas al alumno. Eso se movió a TRADUCIR. En DESTINO el foco es 100% el experto y su estrella, no el aprendiz.
+
+Necesitas 4 evidencias antes de cerrar:
+1. conocimiento: la estrella — el saber real que agrega valor, destilado (no el tema ni la herramienta).
+2. antes: el estado actual de quien aprenderá (su límite/miedo) — inferido del valor de la estrella, sin definir aún quién es.
+3. despues: qué podrá HACER (verbo de acción observable).
+4. evidencia: cómo se sabría, observable, que el cambio ocurrió.
+REGLA DE ORO: "Si no cambia lo que la persona puede hacer o ser, no es aprendizaje: es información."
+Ley 3 sigue vigente: si es una necesidad de servicio ("hazme una app") y no hay conocimiento que enseñar, reencauza.
+CIERRE POTENTE: termina con el contraste "ya no X, ahora Y" (el cambio de quién gobierna).`,
+    jsonSlots:`"conocimiento": "la estrella: el saber que agrega valor, destilado del catastro (no el tema ni la herramienta), o null",
+    "antes": "el estado actual de quien aprenderá (su límite/miedo), o null",
+    "despues": "qué podrá hacer (verbo de acción observable), o null",
+    "evidencia": "cómo se sabría que el cambio ocurrió, o null"`,
+    kickoff:'El usuario acaba de abrir Círculo y no ha escrito nada. Preséntate en UNA frase cálida y breve, y haz UNA sola pregunta abierta e invitadora para que empiece a contarte, con sus palabras, qué hace y cómo lo hace (su historia, lo que le sale natural). NO le pidas un inventario ni una lista; solo abre la conversación para que hable de lo suyo. Vas a destilar su estrella de lo que cuente, no de un cuestionario.',
+    completeFlag:'destino_completo',
+    doneBanner:'Ya tenemos lo más difícil: eso que sabes y que de verdad puede transformar a alguien. Ahora quiero entender cómo lo haces por dentro.'
+  },
+  destilar: {
+    label:'Estado 2 · Destilar',
+    mission:`MISIÓN DE ESTE ESTADO (DESTILAR — descomprimir el saber experto):
+Ya conoces la transformación (el DESTINO). Ahora extrae el conocimiento tácito del experto para darle sustancia. Necesitas 3 evidencias:
+1. obvio: algo que al usuario le resulta OBVIO pero que para un novato es invisible (rompe la maldición del conocimiento). Pregunta madre: "¿qué te resulta obvio que para alguien que empieza no lo es?".
+2. errores: dónde se equivoca típicamente la gente / qué hace un experto que un novato no. Heurística firma: "los errores comunes son el mapa del tesoro: donde la gente tropieza, ahí va la práctica".
+3. esencia: la SECUENCIA MÍNIMA DE PENSAMIENTO que el experto ejecuta antes de decidir. No son "3 principios" ni 3 consejos sueltos — son 3 MOVIMIENTOS MENTALES encadenados (primero esto, luego esto, luego esto) que el experto hace casi sin darse cuenta. Ej (IA): "1. llega con una hipótesis, 2. busca la contradicción, 3. conserva el juicio". Hazla emerger como un método mental, un A→B→C.
+ANTI-PATRÓN: aceptar el "volcado" completo donde todo parece importante → sobrecarga. Si el usuario lista 10 cosas, ayúdalo a esencializar a la secuencia medular.
+Cuando el usuario mencione un tácito o un error, nómbralo y conéctalo con la transformación que ya descubrieron.
+CIERRE POTENTE: termina con el contraste "ya no X, ahora Y" (ej: "Ya no cocinas pizzas: formas criterio").`,
+    jsonSlots:`"obvio": "lo que al experto le resulta obvio pero al novato no, o null",
+    "errores": "dónde se equivoca la gente / lo tácito del experto, o null",
+    "esencia": "las 3 cosas medulares esencializadas, o null"`,
+    kickoff:'Ya se completó DESTINO (se te da como contexto). Abre DESTILAR conectándolo: en una o dos frases reconoce la transformación que ya descubrieron y explica que ahora vas a sacar de su cabeza lo que sabe hacer y ni sabe que sabe. Haz tu primera pregunta para romper la maldición del conocimiento.',
+    completeFlag:'destilar_completo',
+    doneBanner:'Ya está claro lo esencial de cómo piensas. Ahora quiero llevarlo al mundo de quien va a aprenderlo.'
+  },
+  traducir: {
+    label:'Estado 3 · Traducir',
+    mission:`MISIÓN DE ESTE ESTADO (TRADUCIR — definir al aprendiz y calibrar el saber a él):
+Ya tienes la estrella y la transformación (DESTINO) y lo esencial del conocimiento (DESTILAR). Ahora el foco cambia por completo: del experto, al APRENDIZ.
+PRIMER MOVIMIENTO — DEFINIR AL ALUMNO (esto viene de DESTINO, según el método de Astrid: se define al alumno aquí, cuando la promesa central ya está encaminada, no antes). Ayuda a la persona a descubrir a QUIÉN le sirve de verdad su estrella: quién es, en qué momento de su vida está, por qué esta transformación le cambia algo. No lo dejes abstracto ("todos", "cualquiera"); aterriza en una persona concreta.
+LUEGO, con ese aprendiz ya definido, calíbralo:
+1. relevancia: LA PRIMERA CREENCIA DEL APRENDIZ QUE DEBE MORIR para que la nueva pueda existir. Qué cree hoy que le impide transformarse. Ej: "no debo abrir Excel", "la receta manda", "la IA piensa por mí". Nombrar esa creencia-a-morir ES el gancho de relevancia.
+2. mundo_real: UNA ESCENA ESPECÍFICA Y CONCRETA donde el dolor del aprendiz es visible — un momento real, cotidiano ("son las 11pm y sigues sumando celdas a mano"). Búscala pronto; es lo más potente del estado.
+3. secuencia: el orden del CAMINO (no el temario) para que cada paso prepare el siguiente.
+HEURÍSTICA FIRMA: "No simplifiques el contenido. Simplifica el CAMINO." No bajes el nivel ni trates al aprendiz como tonto (ANTI-PATRÓN).
+Mantén la agilidad: define al alumno destilándolo de la conversación, no con un cuestionario.
+CIERRE POTENTE: termina con el contraste "ya no X, ahora Y".`,
+    jsonSlots:`"relevancia": "quién es el aprendiz + la primera creencia suya que debe morir, o null",
+    "mundo_real": "una escena específica y concreta donde el dolor del aprendiz es visible, o null",
+    "secuencia": "el orden del camino para que cada paso prepare el siguiente, o null"`,
+    kickoff:'Ya se completaron DESTINO y DESTILAR (se te dan como contexto). Abre TRADUCIR conectándolo: en una o dos frases reconoce la estrella y lo esencial que ya descubrieron, y explica que ahora el foco cambia — del conocimiento del experto, a la persona que va a aprenderlo. Haz tu primera pregunta para empezar a descubrir a quién le sirve de verdad esta estrella (definir al alumno), sin pedir una lista.',
+    completeFlag:'traducir_completo',
+    doneBanner:'Ya sabemos qué necesita entender quien aprende, y en qué orden. Ahora quiero encontrar el momento en que lo compruebe por sí mismo.'
+  },
+  ascenso: {
+    label:'Estado 4 · Ascenso',
+    mission:`MISIÓN DE ESTE ESTADO (ASCENSO — el traspaso del criterio):
+Los tres estados anteriores pasaron conocimiento DEL experto AL aprendiz. ASCENSO hace algo distinto y nuevo: diseña el momento en que el aprendiz DEJA DE CONFIAR EN EL EXPERTO Y EMPIEZA A CONFIAR EN SÍ MISMO.
+LEY PROFUNDA DE ASCENSO: no busques que el aprendiz produzca "evidencia" (una evidencia se olvida, una práctica se repite sin transformar). Busca LA PRIMERA EXPERIENCIA IRREVERSIBLE: el momento en que el aprendiz ve algo que YA NO PUEDE DES-VER, y que cambia para siempre cómo vuelve a mirar su oficio. Ej: "nunca más abre Excel sin dibujar primero el proceso", "siente la masa y entiende algo que ya no puede desver", "descubre el verdadero origen del problema antes que el resto del equipo", "encuentra una contradicción que jamás habría visto solo". Eso es lo que hace suyo el criterio — no la repetición.
+La pregunta clave: "¿qué tiene que EXPERIMENTAR el aprendiz, una vez, que le cambie la mirada para siempre?". Distingue siempre una práctica que solo repite de una que produce esa experiencia irreversible — persigue la segunda.
+FRASE ANCLA DE ASTRID: "La práctica es el ensayo sin costo de la evidencia." Necesitas 3 evidencias:
+1. ensayo: desde la mirada del APRENDIZ — el primer lugar donde descubre que su nuevo criterio funciona, antes de que el mundo real se lo exija (sin el cliente real, sin el examen real, sin la consecuencia real).
+2. prueba_propia: la EXPERIENCIA IRREVERSIBLE — el momento exacto donde ve algo que ya no puede des-ver y dice "lo hice yo, y ya no miro esto igual". No "lo logró"; "cambió cómo mira".
+3. escalon: cómo se sube la dificultad en peldaños — de la demostración guiada, a la práctica acompañada, a hacerlo solo.
+ANTI-PATRÓN: "ahora practica X 10 veces" (repetición sin experiencia irreversible). La repetición sin un momento que cambie la mirada es relleno.
+CIERRE POTENTE: termina con el contraste "ya no X, ahora Y".`,
+    jsonSlots:`"ensayo": "desde la mirada del aprendiz: el primer lugar donde descubre que su criterio funciona antes de que el mundo se lo exija, o null",
+    "prueba_propia": "la experiencia irreversible: el momento donde ve algo que ya no puede des-ver y cambia su mirada, o null",
+    "escalon": "cómo sube la dificultad de guiado a solo, o null"`,
+    kickoff:'Ya se completaron DESTINO, DESTILAR y TRADUCIR (se te dan como contexto). Abre ASCENSO conectándolo: en una o dos frases reconoce lo construido y explica que ahora el trabajo cambia — ya no es pasar tu conocimiento, es diseñar el momento en que quien aprende deja de creerte a ti y empieza a creerse a sí mismo. Haz tu primera pregunta para descubrir dónde el aprendiz puede ensayar sin costo real.',
+    completeFlag:'ascenso_completo',
+    doneBanner:'Ya está el momento en que quien aprende empieza a confiar en su propio criterio. Falta lo más profundo: que eso siga vivo cuando tú no estés.'
+  },
+  darvida: {
+    label:'Estado 5 · Dar Vida',
+    mission:`MISIÓN DE ESTE ESTADO (DAR VIDA — instalar una nueva voz interior en el aprendiz):
+CUIDADO: DAR VIDA NO es "motivación", ni "storytelling", ni "engagement". Ese sería el peor error. Tiene un trabajo cognitivo único que no existe en ningún estado anterior.
+La propiedad nueva, en su capa más profunda: los cuatro estados anteriores ocurren con el experto presente. DAR VIDA resuelve qué pasa DENTRO DEL APRENDIZ cuando el experto ya no está. Un documento transmite información. Un producto vivo hace algo distinto: INSTALA UNA VOZ INTERIOR — el aprendiz sigue haciéndose las preguntas del experto aunque el experto no esté. No lo recuerda; PIENSA COMO ÉL. Ej: abre Excel y una voz interna dice "primero el proceso"; toca la masa y piensa "¿qué me está diciendo?"; abre la IA y antes de escribir piensa "¿cuál es mi hipótesis?"; ve un problema y aparece "¿qué conversación no ocurrió?". Eso es la vida: no está en el artefacto, está en la mente del aprendiz, como una conversación interna permanente.
+Esto CIERRA el círculo: DESTINO descubrió qué gobernaba al aprendiz; DAR VIDA instala quién lo gobierna ahora — su propia voz, con el criterio del experto vuelto pensamiento propio.
+La pregunta clave: "¿qué pregunta interna tiene que quedarle instalada al aprendiz, para que siga pensando como tú cuando tú ya no estés?". Necesitas 3 evidencias:
+1. voz: la PREGUNTA INTERIOR que el producto debe instalar — la que el experto se hace automáticamente y que el aprendiz debe terminar haciéndose solo, para siempre. Es la voz del experto vuelta voz propia del aprendiz.
+2. momento_solo: el momento concreto y cotidiano donde esa voz interior se activará cuando el aprendiz esté solo (el instante real donde, sin nadie cerca, la pregunta aparece sola en su cabeza).
+3. vida_propia: la señal de que la voz ya se instaló — que el aprendiz piensa así sin esfuerzo, incluso sin recordar de dónde salió, incluso sin haber conocido al experto. La prueba de que el conocimiento se volvió parte de su forma de pensar.
+LEY DE DAR VIDA: un producto cobra vida cuando instala en el aprendiz una conversación interna que sigue viva sin su autor. No transmites información: instalas una forma de pensar.
+ANTI-PATRÓN: confundir "dar vida" con motivación, frases inspiradoras o diseño bonito. La vida es una voz interior instalada, no decoración ni presencia nostálgica.
+CIERRE POTENTE: este es el cierre final del recorrido. Consolida el producto completo y termina cerrando el círculo con el contraste "ya no te gobierna X, ahora te gobierna tu propia voz que pregunta Y".`,
+    jsonSlots:`"voz": "la pregunta interior que el producto debe instalar en el aprendiz para que piense como el experto, o null",
+    "momento_solo": "el momento cotidiano donde esa voz interior se activará cuando el aprendiz esté solo, o null",
+    "vida_propia": "la señal de que la voz ya se instaló y el aprendiz piensa así sin esfuerzo, o null"`,
+    kickoff:'Ya se completaron DESTINO, DESTILAR, TRADUCIR y ASCENSO (se te dan como contexto). Este es el último paso y el más profundo, pero NO le anticipes el concepto al experto — no digas "voz interior" ni "instalar una pregunta". Llega ahí por descubrimiento, igual que DESTINO nunca dice "vamos a descubrir tu estrella". En una o dos frases reconoce el recorrido y abre con una pregunta natural que haga aflorar la pregunta interior sin nombrarla — por ejemplo, en el espíritu de: "Cuando quien aprende esté solo frente a una situación nueva, sin ti al lado, ¿qué pregunta te gustaría que apareciera sola en su cabeza antes de actuar?" Adáptala al oficio del experto.',
+    completeFlag:'darvida_completo',
+    doneBanner:'Tu conocimiento ya no es información: es una voz que quien aprende se llevará consigo y usará cuando tú no estés.'
+  }
+};
+const STATE_ORDER=['destino','destilar','traducir','ascenso','darvida'];
+
+// Guardrail del Decision Engine (lógicamente separado, hoy co-localizado en la misma llamada):
+// un completeFlag:true no se honra ciego — se exige que todos los slots del estado
+// tengan evidencia real. Si el modelo redacta un cierre sin evidencia, lo degradamos
+// a "sigue pensando" en vez de avanzar de estado.
+function stateSlotKeys(stateKey){
+  return STATES[stateKey].jsonSlots.match(/"(\w+)":/g).map(m=>m.replace(/[":]/g,''));
+}
+function hasFullEvidence(stateKey, entendidoMerged){
+  return stateSlotKeys(stateKey).every(k=>{
+    const v=entendidoMerged[k];
+    return v!==null && v!==undefined && String(v).trim().length>0;
+  });
+}
+
+function buildSystemPrompt(stateKey, priorContext){
+  const s=STATES[stateKey];
+  const ctx = priorContext ? `\n\nCONTEXTO YA DESCUBIERTO EN ESTADOS ANTERIORES (úsalo, no lo vuelvas a preguntar):\n${priorContext}` : '';
+  return `${IDENTITY}\n\n${s.mission}${ctx}\n\nESTRUCTURA JSON de tu respuesta (responde SIEMPRE solo con el JSON válido, nada antes del "{" ni después del "}", sin markdown):
+{
+  "mensaje": "tu respuesta conversacional con personalidad",
+  "entendido": { ${s.jsonSlots} },
+  "proponiendo_cierre": false,
+  "${s.completeFlag}": false
+}
+USA "proponiendo_cierre": true cuando ACABAS de proponer el resultado del estado y pides confirmación ("¿lo confirmas o ajustamos?"). En ese turno "${s.completeFlag}" debe ser false.
+USA "${s.completeFlag}": true SOLO el turno DESPUÉS de que el usuario CONFIRMÓ. Nunca ambos true a la vez. Cuando sea true, tu "mensaje" celebra brevemente y consolida en una frase potente.`;
+}
+
+let currentStateIdx=0, userTurns=0, finished=false;
+let history=[];
+let understood={ conocimiento:null,antes:null,despues:null,evidencia:null,obvio:null,errores:null,esencia:null,relevancia:null,mundo_real:null,secuencia:null,ensayo:null,prueba_propia:null,escalon:null,voz:null,momento_solo:null,vida_propia:null };
+
+const msgsEl=document.getElementById('msgs'), inpEl=document.getElementById('inp'), sendBtn=document.getElementById('send');
+inpEl.addEventListener('input', ()=>{ inpEl.style.height='auto'; inpEl.style.height=Math.min(inpEl.scrollHeight,120)+'px'; });
+inpEl.addEventListener('keydown', e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } });
+
+function curState(){ return STATES[STATE_ORDER[currentStateIdx]]; }
+function addMsg(who,text){ const m=document.createElement('div'); m.className='msg '+(who==='user'?'user':'circ'); m.innerHTML=`<div class="who">${who==='user'?'Tú':'Círculo'}</div><div class="bubble">${escapeHtml(text)}</div>`; msgsEl.appendChild(m); msgsEl.scrollTop=msgsEl.scrollHeight; }
+function addDivider(t){ const d=document.createElement('div'); d.className='state-divider'; d.textContent=t; msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight; }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let typingEl=null;
+function showTyping(){ typingEl=document.createElement('div'); typingEl.className='typing-ind'; typingEl.innerHTML='<span></span><span></span><span></span>'; msgsEl.appendChild(typingEl); msgsEl.scrollTop=msgsEl.scrollHeight; }
+function hideTyping(){ if(typingEl){ typingEl.remove(); typingEl=null; } }
+function updatePanel(changedKeys){
+  Object.keys(understood).forEach(k=>{
+    const item=document.querySelector(`.under-item[data-k="${k}"]`); if(!item) return;
+    if(understood[k]){
+      item.classList.add('filled');
+      const uv=document.getElementById('uv-'+k); if(uv) uv.textContent=understood[k];
+      if(changedKeys && changedKeys.includes(k)){
+        item.classList.remove('just-updated'); void item.offsetWidth; item.classList.add('just-updated');
+      }
+    } else { item.classList.remove('filled'); }
+  });
+}
+function updateTurnBadge(){ const b=document.getElementById('turnBadge'); b.textContent = finished ? 'Completado ✦' : 'Pensando juntos'; }
+function setStateUI(){
+  document.getElementById('stageTag').textContent=curState().label;
+  updateProgress();
+  document.getElementById('panel-destilar').style.opacity = currentStateIdx>=1?'1':'.4';
+  document.getElementById('panel-traducir').style.opacity = currentStateIdx>=2?'1':'.4';
+  document.getElementById('panel-ascenso').style.opacity = currentStateIdx>=3?'1':'.4';
+  document.getElementById('panel-darvida').style.opacity = currentStateIdx>=4?'1':'.4';
+}
+
+// Progreso continuo, sin números ni fases visibles. El usuario siente avance, no la estructura.
+// Etiquetas humanas de alto nivel que cambian por grandes momentos, no por estado interno.
+// pipelineStage permite que las etapas de Fase 2 (Avatar, Arquitectura, etc.) sigan empujando la barra
+// más allá de los 5 estados de Círculo, sin exponer que existen.
+let pipelineProgress = 0;
+function setProgressLabel(txt){
+  const el=document.getElementById('progressLabel'); if(!el) return;
+  if(el.textContent===txt) return;
+  el.style.opacity='0';
+  setTimeout(()=>{ el.textContent=txt; el.style.opacity='1'; }, 300);
+}
+function setProgressBar(pct){
+  pipelineProgress = Math.max(pipelineProgress, pct); // nunca retrocede
+  const f=document.getElementById('progressFill'); if(f) f.style.width=pipelineProgress+'%';
+}
+function updateProgress(){
+  // Los 5 estados de Círculo ocupan ~0-55% del recorrido total; Fase 2 el resto.
+  const pisos=[4, 15, 26, 37, 46];
+  const techos=[14, 25, 36, 45, 54];
+  const piso=pisos[currentStateIdx] ?? 4, techo=techos[currentStateIdx] ?? 54;
+  const dentro = Math.min(userTurns/5, 1);
+  setProgressBar(Math.round(piso + (techo-piso)*dentro));
+  // Etiquetas de NACIMIENTO del producto, no de trabajo del sistema. El sujeto es algo suyo que emerge,
+  // no el sistema operando. No mapean a etapas — describen una gestación continua.
+  const labels=[
+    'Algo tuyo empieza a tomar forma',
+    'Va tomando forma',
+    'Empieza a tomar cuerpo',
+    'Cada vez más nítido',
+    'Ya casi puedes verlo'
+  ];
+  setProgressLabel(labels[currentStateIdx]||'Tomando forma');
+}
+// Llamado por las etapas de Fase 2 para seguir empujando la barra con etiquetas de alto nivel.
+function pipelineStage(pct, label){ setProgressBar(pct); if(label) setProgressLabel(label); }
+function priorContextString(){
+  const b=[];
+  if(understood.conocimiento) b.push('La estrella (conocimiento que agrega valor): '+understood.conocimiento);
+  if(understood.antes) b.push('Antes: '+understood.antes);
+  if(understood.despues) b.push('Después: '+understood.despues);
+  if(understood.evidencia) b.push('Evidencia: '+understood.evidencia);
+  if(understood.obvio) b.push('Lo obvio-invisible: '+understood.obvio);
+  if(understood.errores) b.push('Errores típicos: '+understood.errores);
+  if(understood.esencia) b.push('Las 3 esenciales: '+understood.esencia);
+  if(understood.relevancia) b.push('Creencia que debe morir: '+understood.relevancia);
+  if(understood.mundo_real) b.push('Escena del dolor: '+understood.mundo_real);
+  if(understood.secuencia) b.push('Orden del camino: '+understood.secuencia);
+  if(understood.ensayo) b.push('Ensayo sin costo: '+understood.ensayo);
+  if(understood.prueba_propia) b.push('Experiencia irreversible: '+understood.prueba_propia);
+  if(understood.escalon) b.push('Peldaños: '+understood.escalon);
+  if(understood.voz) b.push('Voz interior instalada: '+understood.voz);
+  if(understood.momento_solo) b.push('Cuándo se activa esa voz: '+understood.momento_solo);
+  if(understood.vida_propia) b.push('El aprendiz ya piensa así solo: '+understood.vida_propia);
+  return b.join('\n');
+}
+
+async function callAI(sys, messages){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:sys, messages }) });
+  const data=await res.json();
+  const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  return parseReply(txt);
+}
+function parseReply(raw){ let t=raw.trim().replace(/```json/gi,'').replace(/```/g,'').trim(); const a=t.indexOf('{'),b=t.lastIndexOf('}'); if(a>=0&&b>a){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e){} } return { mensaje:t||'Sigo pensando… cuéntame un poco más.', entendido:null }; }
+
+async function sendMsg(){
+  const text=inpEl.value.trim(); if(!text||finished||awaitingOptionSelection) return;
+  if(pendingInferenceQuestion){ await answerInferenceQuestion(text); return; }
+  addMsg('user',text); inpEl.value=''; inpEl.style.height='auto';
+  userTurns++; updateTurnBadge(); updateProgress();
+  history.push({role:'user', content:`[Turno ${userTurns}] ${text}`});
+  sendBtn.disabled=true; showTyping();
+  try{
+    const sys=buildSystemPrompt(STATE_ORDER[currentStateIdx], currentStateIdx>0?priorContextString():null);
+    const reply=await callAI(sys, history);
+    hideTyping();
+    if(reply.entendido){
+      const changed=[];
+      Object.keys(understood).forEach(k=>{
+        if(reply.entendido[k] && reply.entendido[k]!==understood[k]){
+          if(understood[k]) changed.push(k); // existed before and changed = a correction/update
+          understood[k]=reply.entendido[k];
+        }
+      });
+      updatePanel(changed);
+    }
+    addMsg('circ', reply.mensaje);
+    history.push({role:'assistant', content:reply.mensaje});
+    const flag=curState().completeFlag;
+    const stateKey=STATE_ORDER[currentStateIdx];
+    if(reply[flag]===true){
+      if(hasFullEvidence(stateKey, understood)){
+        onStateComplete();
+      } else {
+        console.warn(`[Decision Engine guardrail] ${stateKey} mandó ${flag}:true sin evidencia completa en los slots. Cierre ignorado, se trata como proponiendo_cierre.`, understood);
+        sendBtn.disabled=false; inpEl.placeholder='Confirma o ajusta…'; inpEl.focus();
+      }
+    }
+    else { sendBtn.disabled=false; inpEl.placeholder = reply.proponiendo_cierre ? 'Confirma o ajusta…' : 'Escribe tu respuesta…'; inpEl.focus(); }
+  }catch(err){ hideTyping(); addMsg('circ','Ups — tuve un problema para pensar. ¿Puedes intentarlo de nuevo?'); console.error(err); sendBtn.disabled=false; }
+}
+
+function onStateComplete(){
+  const banner=document.getElementById('doneBanner');
+  banner.innerHTML=curState().doneBanner; banner.classList.add('show');
+  if(currentStateIdx < STATE_ORDER.length-1){
+    setTimeout(async ()=>{
+      currentStateIdx++; userTurns=0; updateTurnBadge(); setStateUI();
+      banner.classList.remove('show');
+      await kickoffState();
+    }, 1700);
+  } else {
+    setTimeout(async ()=>{
+      banner.classList.remove('show');
+      pipelineStage(60,'Ya casi puedes verlo entero');
+      await runMotorInferencia();
+    }, 1700);
+  }
+}
+
+// ===== LEY DE CONTRATO ENTRE ETAPAS =====
+// Cada etapa valida que recibió lo necesario ANTES de ejecutar. Si falta algo: intenta reconstruir en
+// silencio, o falla sin exponer al usuario. NUNCA delega el problema al usuario ("los hechos están vacíos").
+// Nace de un bug real observado: priorContextString incompleta propagó un mensaje técnico a la superficie.
+
+// Define qué necesita cada etapa para poder correr. Devuelve {ok, faltan:[...]}.
+// PIPELINE_CONTRATOS: registro declarativo único. Cada etapa declara las 6 propiedades que gobiernan su contrato.
+//   recibe:      descripción legible de qué necesita (documentación viva)
+//   valida():    true solo si la estructura MÍNIMA ÚTIL está presente (no solo que el objeto exista)
+//   reconstruir(): intenta recuperar en silencio desde memoria de Círculo o resultados previos; devuelve true si logró dejar el contrato satisfecho
+//   entrega:     qué deja para la siguiente etapa (documentación viva)
+//   mensajeUsuario: si todo falla, el texto HUMANO y neutro que ve el usuario (nunca nombres internos)
+const PIPELINE_CONTRATOS = {
+  inferencia: {
+    recibe: 'memoria de Círculo (16 slots) vía priorContextString()',
+    valida: ()=> { const m=priorContextString(); return !!(m && m.trim().length>0); },
+    reconstruir: ()=> false, // si no hay memoria de Círculo no hay nada que reconstruir: es la fuente
+    entrega: 'inferredAvatar, inferredPromesa',
+    mensajeUsuario: 'Dame un momento para poner en orden todo lo que descubrimos juntos…'
+  },
+  opciones: {
+    recibe: 'inferredAvatar con al menos un campo anclado',
+    valida: ()=> !!(inferredAvatar && Object.keys(inferredAvatar).length>0),
+    reconstruir: ()=> false, // si el paso de inferencia no produjo avatar, se pide contexto (lo maneja presentarOpciones)
+    entrega: 'window.__seleccion.avatar, window.__seleccion.promesa',
+    mensajeUsuario: null // presentarOpciones tiene su propio flujo de recuperación conversacional
+  },
+  arquitectura: {
+    recibe: 'window.__seleccion.avatar y .promesa',
+    valida: ()=> !!(window.__seleccion && window.__seleccion.avatar && window.__seleccion.promesa),
+    // reconstrucción silenciosa: si falta la selección pero SÍ hay inferencia previa, usa la recomendada.
+    reconstruir: ()=> {
+      if(!window.__seleccion) window.__seleccion={};
+      let logrado=false;
+      if(!window.__seleccion.avatar && Array.isArray(window.__avatarOps) && window.__avatarOps[0]){ window.__seleccion.avatar=window.__avatarOps[0]; logrado=true; }
+      if(!window.__seleccion.promesa && Array.isArray(window.__promesaOps) && window.__promesaOps[0]){ window.__seleccion.promesa=window.__promesaOps[0]; logrado=true; }
+      return !!(window.__seleccion.avatar && window.__seleccion.promesa) && logrado;
+    },
+    entrega: 'window.__arqElegida (con .modulos)',
+    mensajeUsuario: 'Déjame ordenar el camino un momento…'
+  },
+  evidencia: {
+    recibe: 'window.__arqElegida.modulos (array no vacío)',
+    valida: ()=> !!(window.__arqElegida && Array.isArray(window.__arqElegida.modulos) && window.__arqElegida.modulos.length>0),
+    reconstruir: ()=> false,
+    entrega: 'window.__evidencias (array)',
+    mensajeUsuario: 'Déjame revisar el camino un momento…'
+  },
+  forma: {
+    recibe: 'window.__evidencias (array no vacío)',
+    valida: ()=> !!(window.__evidencias && window.__evidencias.length>0),
+    // reconstrucción: si no hay evidencias pero sí módulos, deriva una evidencia mínima desde cada módulo.
+    reconstruir: ()=> {
+      if((!window.__evidencias || !window.__evidencias.length) && window.__arqElegida && Array.isArray(window.__arqElegida.modulos)){
+        window.__evidencias = window.__arqElegida.modulos.map(m=>({ modulo:m.titulo, evidencia:m.cambio_observable||m.que_contiene||'', anclaje:'reconstruido del módulo' }));
+        return window.__evidencias.length>0;
+      }
+      return false;
+    },
+    entrega: 'window.__formaProducto (con .producto_estructura y .blueprint_privado)',
+    mensajeUsuario: 'Déjame darle forma a esto un momento…'
+  },
+  desarrollo: {
+    recibe: 'window.__formaProducto.producto_estructura.modulos (array)',
+    valida: ()=> !!(window.__formaProducto && window.__formaProducto.producto_estructura && Array.isArray(window.__formaProducto.producto_estructura.modulos) && window.__formaProducto.producto_estructura.modulos.length>0),
+    reconstruir: ()=> false,
+    entrega: 'desarrolloResultados (array de módulos con contenido)',
+    mensajeUsuario: 'Déjame preparar el contenido un momento…'
+  },
+  bonus: {
+    recibe: 'window.__seleccion.avatar (+ evidencias y fricción como contexto)',
+    valida: ()=> !!(window.__seleccion && window.__seleccion.avatar),
+    reconstruir: ()=> false,
+    entrega: 'window.__bonus',
+    mensajeUsuario: null // bonus es opcional: si falla, se salta al blueprint sin avisar nada
+  },
+  blueprint: {
+    recibe: 'window.__formaProducto.blueprint_privado + desarrolloResultados',
+    valida: ()=> !!(window.__formaProducto && window.__formaProducto.blueprint_privado),
+    reconstruir: ()=> false,
+    entrega: 'render final de los 2 activos',
+    mensajeUsuario: 'Déjame reunir todo lo que construimos…'
+  }
+};
+
+function verificarContrato(etapa){
+  const c = PIPELINE_CONTRATOS[etapa];
+  if(!c) return { ok:true };
+  return { ok: !!c.valida() };
+}
+
+// Punto de entrada uniforme para cada etapa: valida → si falla intenta reconstruir en silencio →
+// si sigue fallando, registra internamente y devuelve el mensaje humano (nunca nombres internos).
+// Devuelve {ok:true} si la etapa puede proceder, o {ok:false, mensajeUsuario} si debe detenerse elegante.
+function entrarEtapa(etapa){
+  const c = PIPELINE_CONTRATOS[etapa];
+  if(!c) return { ok:true };
+  if(c.valida()) return { ok:true };
+  // Intento de reconstrucción silenciosa
+  try{
+    if(c.reconstruir && c.reconstruir() && c.valida()){
+      console.warn(`[Contrato] ${etapa}: contrato reconstruido silenciosamente desde estado previo.`);
+      return { ok:true, reconstruido:true };
+    }
+  }catch(e){ console.warn(`[Contrato] ${etapa}: fallo durante reconstrucción.`, e); }
+  // No se pudo: registro interno + mensaje humano
+  console.warn(`[Contrato] ${etapa}: contrato incumplido y no reconstruible. Recibe: ${c.recibe}`);
+  return { ok:false, mensajeUsuario: c.mensajeUsuario };
+}
+
+// Cuando una etapa falla su contrato o su llamada, el usuario nunca ve un error técnico.
+// Se registra a consola (para nosotros) y se muestra, si acaso, un mensaje humano y neutro.
+function falloSilencioso(etapaLabel, err){
+  console.warn(`[Contrato entre etapas] ${etapaLabel} no pudo completar su contrato. Recuperación silenciosa.`, err||'');
+}
+
+const INFERENCE_IDENTITY = `Eres el Motor de Inferencia de Círculo. NO eres el mismo rol que el entrevistador de los 5 estados: tú no conversas ni preguntas. Tu trabajo es RAZONAR en silencio sobre la memoria completa que Círculo ya construyó, y derivar Avatar y Promesa.
+
+LEY DE INVISIBILIDAD: el usuario nunca ve tu razonamiento interno, solo el resultado final. No expliques tu proceso en el texto que el usuario verá.
+
+LEY DE INFERENCIA: nunca inventes algo que no tenga anclaje real en la memoria de Círculo. Si un campo no tiene anclaje, NO lo incluyas en el resultado — es mejor un avatar incompleto que uno inventado.
+
+ESTRUCTURA DE CADA DECISIÓN (Decisión Inferida): para cada campo debes producir {"valor": "...", "evidencia": "cuál(es) de los 16 slots de Círculo sostienen esto, cita el slot exacto", "confianza": "alta"|"baja"}.
+- "alta" SOLO si el valor está directamente anclado en algo que el experto dijo (mundo_real, relevancia, antes, despues, conocimiento, etc.) — no en tu conocimiento general del mundo.
+- "baja" si estás extrapolando de tu conocimiento general (ej. "probablemente tiene 35-45 años" sin que Círculo lo haya dicho nunca).
+- Si la confianza es "baja" en un campo NO estructural (no cambiaría el producto), simplemente OMÍTELO — no lo fuerces.
+- Si la confianza es "baja" en un campo que SÍ sería estructural (cambiaría materialmente el contenido/lenguaje/formato si lo supieras), entonces y SOLO entonces pon ese campo en "pregunta_pendiente" en vez de inventarlo.
+
+PRUEBA DE ESTRUCTURAL VS COSMÉTICO para cada rasgo candidato: "si este dato cambiara, ¿cambiaría el contenido, el lenguaje, el formato, la promesa o la experiencia del producto?" Si sí → puede ser estructural (inclúyelo si tiene anclaje, pregúntalo si no). Si no → es decorativo, ni lo menciones aunque "suene específico".
+
+REGLA DEL TIEMPO (aprendida de pruebas previas): Círculo casi nunca captura un plazo explícito. NUNCA inventes un tiempo para la promesa ("en 7 días", "en 1 mes") a menos que el experto lo haya mencionado literalmente en algún slot. Si no hay evidencia de tiempo, la promesa se construye SIN comprometer plazo.
+
+AVATAR POR CAPAS (incluye solo las que tengan anclaje):
+- identidad_relevante: quién es, solo si el rasgo cambia el producto (ancla típica: mundo_real + relevancia)
+- situacion_actual: qué está viviendo ahora (ancla típica: mundo_real)
+- problema_observable: qué le pasa concretamente (ancla típica: relevancia, antes)
+- nivel_capacidad: qué sabe y qué no (ancla típica: mundo_real — la escena casi siempre revela el nivel)
+- transformacion_buscada: qué quiere lograr (ancla típica: despues)
+- friccion_principal: qué lo detiene (ancla típica: relevancia — la creencia que debe morir)
+
+PROMESA: genera 1 sola promesa final (ya evaluada internamente entre varias candidatas por claridad, especificidad, correspondencia con "despues", ausencia de exageración, y uso del lenguaje literal de mundo_real — no le muestres el proceso al usuario). Formato libre, en el idioma del oficio, sin plazo inventado.
+
+Responde SOLO con JSON válido, nada antes del "{" ni después del "}":
+{
+  "avatar": { "<campo>": {"valor":"...", "evidencia":"...", "confianza":"alta"} , ... solo campos con confianza alta ... },
+  "promesa": {"valor":"...", "evidencia":"..."},
+  "pregunta_pendiente": "una sola pregunta puntual al experto, SOLO si algún campo estructural no tiene anclaje. Si no hay ninguna, null.",
+  "mensaje_usuario": "una frase cálida, breve, que presenta lo que se descubrió — SIN jerga de 'motor de inferencia' ni 'decisión inferida'. Ej: 'Con todo lo que me contaste, esto es lo que veo con claridad de quién es tu alumno y qué le prometes:'"
+}`;
+
+function buildInferencePrompt(){
+  return `${INFERENCE_IDENTITY}\n\nMEMORIA COMPLETA DE CÍRCULO (los 16 slots ya descubiertos):\n${priorContextString()}`;
+}
+
+function hasAnchor(field){
+  return !!(field && typeof field==='object' && field.confianza==='alta' && field.evidencia && String(field.evidencia).trim().length>0 && field.valor && String(field.valor).trim().length>0);
+}
+
+async function runMotorInferencia(){
+  // Contrato: el Motor de Inferencia necesita la memoria de Círculo. Si llega vacía, no ejecuta con vacío
+  // (eso producía el "hechos verificados vacíos" visible al usuario). Recuperación silenciosa.
+  if(!verificarContrato('inferencia').ok){
+    falloSilencioso('Motor de Inferencia (memoria de Círculo vacía)');
+    // Reintento único: dar un momento y revalidar por si understood aún no se había propagado.
+    await new Promise(r=>setTimeout(r,400));
+    if(!verificarContrato('inferencia').ok){
+      addMsg('circ','Dame un momento para poner en orden todo lo que descubrimos juntos…');
+      finished=true; inpEl.placeholder='Recorrido completado ✦';
+      return;
+    }
+  }
+  showTyping();
+  try{
+    const sys=buildInferencePrompt();
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1200, system:sys, messages:[{role:'user', content:'Genera el Avatar y la Promesa ahora, siguiendo la estructura JSON indicada.'}] }) });
+    const data=await res.json();
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+
+    // Paso 1 — guardrail estructural: aunque el modelo mande un campo, si no cumple anclaje real, se descarta (no confiamos ciego en la autoevaluación del modelo).
+    const avatarClean={};
+    if(reply.avatar){
+      Object.keys(reply.avatar).forEach(k=>{
+        if(hasAnchor(reply.avatar[k])) avatarClean[k]=reply.avatar[k];
+        else console.warn(`[Motor de Inferencia guardrail] campo avatar.${k} descartado por falta de anclaje real.`, reply.avatar[k]);
+      });
+    }
+    const promesaOk = reply.promesa && reply.promesa.valor && reply.promesa.evidencia;
+    if(!promesaOk) console.warn('[Motor de Inferencia guardrail] promesa descartada por falta de evidencia.', reply.promesa);
+    inferredAvatar=avatarClean; inferredPromesa=promesaOk?reply.promesa:null;
+
+    if(reply.pregunta_pendiente){
+      addMsg('circ', reply.mensaje_usuario || 'Antes de mostrarte algo, necesito una sola cosa:');
+      addMsg('circ', reply.pregunta_pendiente);
+      finished=false; inpEl.placeholder='Escribe tu respuesta…'; sendBtn.disabled=false; inpEl.focus();
+      pendingInferenceQuestion=true;
+      return;
+    }
+    // Paso 2 — generar opciones SOLO a partir de lo ya verificado (sin acceso a la memoria cruda de Círculo, no puede inventar hechos nuevos).
+    await presentarOpciones();
+  }catch(err){
+    hideTyping();
+    addMsg('circ','Perdona, se me enredó algo por acá. ¿Lo intentamos de nuevo?');
+    console.error(err);
+    finished=true;
+  }
+}
+
+let inferredAvatar=null, inferredPromesa=null, awaitingOptionSelection=false;
+
+async function presentarOpciones(){
+  // Contrato: presentar opciones requiere al menos un avatar verificado. Si el paso 1 no produjo nada
+  // anclado, no le pasamos un objeto vacío al modelo (eso genera "los hechos verificados están vacíos").
+  if(!verificarContrato('opciones').ok){
+    falloSilencioso('Presentación de opciones (avatar sin campos anclados)');
+    addMsg('circ','Con lo que me contaste ya tengo una base, aunque quedó algo abierta. ¿Quieres contarme un poco más sobre a quién te imaginas ayudando?');
+    finished=false; pendingInferenceQuestion=true; inpEl.placeholder='Escribe tu respuesta…'; sendBtn.disabled=false; inpEl.focus();
+    return;
+  }
+  showTyping();
+  const OPCIONES_IDENTITY = `Eres el módulo de presentación de Círculo. Tu única fuente de verdad es el JSON de hechos ya verificados que te paso abajo — NO tienes acceso a nada más, así que NO PUEDES inventar ningún hecho nuevo. Todo lo que escribas tiene que poder señalarse a un campo de ese JSON.
+
+Genera 3 formas de presentar el AVATAR. NO son solo variaciones de tono — cada opción debe LIDERAR con un hecho anclado distinto de los ya verificados (ej. si hay un campo de fricción, uno de nivel de capacidad y uno de problema observable, cada opción pone uno distinto primero y construye el resto del párrafo alrededor de ese). Esto crea diferencias de posicionamiento reales sin inventar nada — es reordenar énfasis entre hechos ya verificados, nunca agregar un hecho, un rasgo o una interpretación que no esté en el JSON. Redacta como párrafo en segunda persona ("Trabajas con...", "Vives...", "Sientes..."), no como lista de campos. Marca una como "recomendada" (la que mejor sintetiza todos los hechos, no necesariamente la primera).
+
+Genera 3 formas de la PROMESA, con la misma regla: cada una lidera con una tensión distinta ya anclada (ej. una desde la dependencia externa, otra desde la pérdida de confianza propia, otra desde la ansiedad/carga emocional — SOLO si esas tensiones distintas existen de verdad en los hechos verificados; si solo hay una tensión clara, no fuerces 3 ángulos falsos, varía menos). Cada una con "porque": una frase breve citando el hecho real que la sostiene. NUNCA incluyas un plazo/tiempo que no esté en los hechos verificados. Marca una como "recomendada".
+
+HECHOS VERIFICADOS (única fuente permitida):
+${JSON.stringify({avatar:inferredAvatar, promesa:inferredPromesa})}
+
+Responde SOLO JSON:
+{
+  "mensaje_usuario": "apertura CONVERSACIONAL — NO suene a que terminó una etapa ni a un anuncio ('ya descubrimos...', 'hemos completado...'). Debe sentirse como si, escuchando al experto, un patrón hubiera emergido solo en la conversación. En el espíritu de: 'Escuchándote, apareció un patrón muy claro de a quién ayudas y qué le ofreces...' o 'Mientras me contabas, algo se fue dibujando solo...' — natural, como si la conversación hubiera llegado ahí sola. Luego invita a elegir qué enfoque conecta más.",
+  "avatar_opciones": [ {"label":"Recomendada","texto":"..."}, {"label":"Opción B","texto":"..."}, {"label":"Opción C","texto":"..."} ],
+  "promesa_opciones": [ {"label":"Recomendada","texto":"...","porque":"..."}, {"label":"Opción B","texto":"...","porque":"..."}, {"label":"Opción C","texto":"...","porque":"..."} ]
+}`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1200, system:OPCIONES_IDENTITY, messages:[{role:'user', content:'Genera las opciones ahora.'}] }) });
+    const data=await res.json();
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    addMsg('circ', reply.mensaje_usuario || 'Escuchándote, apareció un patrón muy claro de a quién ayudas:');
+    renderOpciones(reply.avatar_opciones||[], reply.promesa_opciones||[]);
+    finished=false; awaitingOptionSelection=true; inpEl.placeholder='Elige una opción arriba…'; sendBtn.disabled=true; // el input de texto se bloquea: la única forma de avanzar es eligiendo, nunca texto libre
+  }catch(err){
+    hideTyping();
+    // Fallback: si falla la generación de opciones, mostrar el resultado estructurado plano en vez de bloquear al usuario.
+    addMsg('circ','Escuchándote, se fue dibujando algo con bastante claridad:');
+    renderInferencePanel(inferredAvatar||{}, inferredPromesa);
+    finished=true; inpEl.placeholder='Recorrido completado ✦';
+    console.error(err);
+  }
+}
+
+function renderOpciones(avatarOps, promesaOps){
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  const optHtml=(list, tipo)=>list.map((o,i)=>`
+    <div class="opcion-card" data-tipo="${tipo}" data-idx="${i}" onclick="elegirOpcion('${tipo}',${i})" style="border:1.5px solid var(--line-2); border-radius:12px; padding:12px 14px; margin-bottom:8px; cursor:pointer; background:var(--panel);">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:${o.label.toLowerCase().includes('recomendada')?'var(--ok)':'var(--ink-faint)'}; font-weight:600; margin-bottom:5px;">${escapeHtml(o.label)}${o.label.toLowerCase().includes('recomendada')?' ⭐':''}</div>
+      <div style="font-size:13.5px; line-height:1.5;">${escapeHtml(o.texto)}</div>
+      ${o.porque?`<div style="font-size:11.5px; color:var(--ink-faint); margin-top:6px; font-style:italic;">${escapeHtml(o.porque)}</div>`:''}
+    </div>`).join('');
+  wrap.innerHTML = `
+    <div class="bubble" style="max-width:100%;">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); font-weight:600; margin-bottom:8px;">¿Con cuál de estas personas conectas más?</div>
+      ${optHtml(avatarOps,'avatar')}
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); font-weight:600; margin:14px 0 8px;">¿Cuál expresa mejor lo que quieres lograr para esa persona?</div>
+      ${optHtml(promesaOps,'promesa')}
+      <div onclick="ningunaRepresenta()" style="text-align:center; font-size:12px; color:var(--ink-faint); text-decoration:underline; cursor:pointer; margin-top:10px;">Ninguna representa bien lo que busco</div>
+    </div>`;
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+  window.__avatarOps=avatarOps; window.__promesaOps=promesaOps;
+  window.__seleccion={avatar:null, promesa:null};
+}
+
+function elegirOpcion(tipo, idx){
+  document.querySelectorAll(`.opcion-card[data-tipo="${tipo}"]`).forEach(el=>el.style.borderColor='var(--line-2)');
+  const el=document.querySelector(`.opcion-card[data-tipo="${tipo}"][data-idx="${idx}"]`);
+  el.style.borderColor='var(--cyan)';
+  window.__seleccion[tipo] = tipo==='avatar' ? window.__avatarOps[idx] : window.__promesaOps[idx];
+  // Segunda condición de salida del Motor de Inferencia: no basta la evidencia (paso 1) — hace falta el reconocimiento del experto (esta elección).
+  if(window.__seleccion.avatar && window.__seleccion.promesa){
+    awaitingOptionSelection=false;
+    addMsg('circ','Perfecto — eso es.');
+    renderInferencePanel(inferredAvatar||{}, {valor:window.__seleccion.promesa.texto, evidencia:window.__seleccion.promesa.porque||''});
+    setTimeout(()=>{ pipelineStage(72,'Se está armando'); runArquitectura(); }, 1200);
+  }
+}
+
+function ningunaRepresenta(){
+  awaitingOptionSelection=false;
+  addMsg('user','Ninguna representa bien lo que busco.');
+  addMsg('circ','Entendido — dime en tus palabras qué le cambiarías, y lo vuelvo a intentar con eso como evidencia nueva.');
+  pendingInferenceQuestion=true; finished=false; inpEl.placeholder='Escribe tu ajuste…'; sendBtn.disabled=false; inpEl.focus();
+}
+
+function renderInferencePanel(avatar, promesa){
+  const panel=document.querySelector('.panel');
+  const old=document.getElementById('panel-inferencia'); if(old) old.remove();
+  const sec=document.createElement('div');
+  sec.className='panel-section';
+  sec.id='panel-inferencia';
+  const rows=Object.keys(avatar).map(k=>`<div class="under-item filled"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">${k.replace(/_/g,' ')}</span></div><div class="ui-value">${escapeHtml(avatar[k].valor)}</div></div>`).join('');
+  const promesaHtml = promesa ? `<div class="under-item filled"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Promesa elegida</span></div><div class="ui-value">${escapeHtml(promesa.valor)}</div></div>` : '';
+  sec.innerHTML = `<div class="ps-head"><span class="ps-dot"></span>Avatar y Promesa · confirmados</div>${rows}${promesaHtml}`;
+  panel.appendChild(sec);
+}
+
+async function answerInferenceQuestion(text){
+  addMsg('user', text); inpEl.value=''; inpEl.style.height='auto';
+  sendBtn.disabled=true; showTyping();
+  pendingInferenceQuestion=false;
+  // La respuesta del experto se vuelve evidencia real (anclada) para el próximo intento del motor.
+  history.push({role:'user', content:`[Respuesta del experto al Motor de Inferencia] ${text}`});
+  const oldPanel=document.getElementById('panel-inferencia'); if(oldPanel) oldPanel.remove();
+  try{
+    const sys=buildInferencePrompt() + `\n\nEL EXPERTO ACABA DE RESPONDER O AJUSTAR: "${text}". Esto ya es evidencia anclada real — úsala junto con todo lo demás para regenerar Avatar y Promesa.`;
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1200, system:sys, messages:[{role:'user', content:'Genera el Avatar y la Promesa final ahora, con la nueva evidencia incluida.'}] }) });
+    const data=await res.json();
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    const avatarClean={};
+    if(reply.avatar){ Object.keys(reply.avatar).forEach(k=>{ if(hasAnchor(reply.avatar[k])) avatarClean[k]=reply.avatar[k]; }); }
+    const promesaOk = reply.promesa && reply.promesa.valor && reply.promesa.evidencia;
+    inferredAvatar=avatarClean; inferredPromesa=promesaOk?reply.promesa:null;
+    if(reply.pregunta_pendiente){
+      addMsg('circ', reply.pregunta_pendiente);
+      finished=false; inpEl.placeholder='Escribe tu respuesta…'; sendBtn.disabled=false; inpEl.focus();
+      pendingInferenceQuestion=true;
+      return;
+    }
+    await presentarOpciones();
+  }catch(err){
+    hideTyping(); addMsg('circ','Ups — tuve un problema. ¿Puedes intentarlo de nuevo?'); console.error(err);
+    finished=true;
+  }
+}
+
+let pendingInferenceQuestion=false;
+
+// ===== ARQUITECTURA =====
+// Ley ya escrita en el traspaso: "La arquitectura no crea la transformación. La arquitectura organiza
+// el camino hacia la transformación que Círculo ya descubrió." No puede inventar un clímax nuevo — el
+// último módulo tiene que conducir a prueba_propia (la experiencia irreversible que ASCENSO ya encontró).
+
+const ARQUITECTURA_IDENTITY = `Eres el módulo de Arquitectura de Círculo. Tu trabajo NO es inventar contenido — es decidir DÓNDE CORTAR el camino que Círculo ya descubrió en piezas de producto (módulos).
+
+REGLA DE ORO (no negociable): "La arquitectura no crea la transformación. La arquitectura organiza el camino hacia la transformación que Círculo ya descubrió." No puedes inventar un módulo cuyo contenido no esté anclado en secuencia, esencia, escalon o prueba_propia.
+
+Para cada módulo de cada arquitectura candidata, produce: {"titulo":"...", "funcion_transformadora":"qué cambio único logra este módulo, que ningún otro módulo logra", "cambio_observable":"qué puede hacer o notar el aprendiz al terminar este módulo, que no podía antes", "anclaje":"a qué slot(s) exactos de Círculo se ata este módulo (secuencia/esencia/escalon/prueba_propia)"}.
+
+CONDICIÓN DE SALIDA — verifica esto tú mismo antes de responder:
+1. Cada módulo tiene una función transformadora ÚNICA — ningún módulo repite el cambio de otro.
+2. El orden es CAUSAL, no temático: pregúntate para cada módulo "¿podría el aprendiz hacerlo sin haber hecho el anterior?" — si la respuesta es sí, el orden está mal.
+3. El ÚLTIMO módulo de cada arquitectura tiene que conducir directamente a la experiencia irreversible ya descubierta (prueba_propia) — no inventes un clímax nuevo, usa el que ya existe.
+
+PREGUNTA CRÍTICA ANTES DE DECIDIR CUÁNTAS ARQUITECTURAS GENERAR (no te la saltes): ¿existe genuinamente una segunda estrategia pedagógica anclada en la evidencia — ej. desmontar la creencia primero vs. victoria práctica primero, recorrido intensivo vs. gradual, aplicación individual vs. en equipo — o secuencia/escalon ya definen un único orden causal defendible? Si solo existe UN camino causal claro (la mayoría de los casos simples), genera SOLO 1 arquitectura marcada "recomendada", con "criterio_diferenciador": null, y explica en "justificacion_unica" por qué no hay una segunda opción legítima. NUNCA fabriques una segunda arquitectura solo para "dar a elegir" — eso le devuelve al usuario un trabajo de diseño que Círculo debe resolver solo. Si SÍ existe una bifurcación real, genera 2, y cada una debe traer "criterio_diferenciador" describiendo la disyuntiva pedagógica real (no una frase genérica ni "orden distinto de los mismos módulos").
+
+Entre 3 y 6 módulos cada arquitectura.
+
+MEMORIA DE CÍRCULO (única fuente permitida — secuencia, esencia, escalon y prueba_propia son las anclas principales; avatar y promesa dan el contexto de para quién es):
+${JSON.stringify({slots:'SLOTS_PLACEHOLDER', avatar:'AVATAR_PLACEHOLDER', promesa:'PROMESA_PLACEHOLDER'})}
+
+Responde SOLO JSON:
+{
+  "mensaje_usuario": "apertura breve y cálida presentando el momento (no jerga técnica de 'arquitectura' o 'módulos causales')",
+  "existe_segunda_estrategia_legitima": true,
+  "arquitecturas": [
+    {"label":"Recomendada","resumen":"una frase de qué tipo de camino es","criterio_diferenciador":"si hay 2, la disyuntiva pedagógica real; si hay 1, null","justificacion_unica":"si hay 1 sola, por qué no existe una segunda opción legítima; si hay 2, null","modulos":[{"titulo":"...","funcion_transformadora":"...","cambio_observable":"...","anclaje":"..."}]}
+  ]
+}`;
+
+function hasModuleAnchor(m){
+  return !!(m && m.titulo && String(m.titulo).trim() && m.funcion_transformadora && String(m.funcion_transformadora).trim() && m.cambio_observable && String(m.cambio_observable).trim() && m.anclaje && String(m.anclaje).trim());
+}
+
+function arquitecturaValida(arch){
+  if(!arch || !Array.isArray(arch.modulos) || arch.modulos.length<2) return false;
+  if(!arch.modulos.every(hasModuleAnchor)) return false;
+  const funciones = arch.modulos.map(m=>String(m.funcion_transformadora).toLowerCase().trim());
+  if(new Set(funciones).size !== funciones.length) return false;
+  if(!primerModuloNoEsAntipatron(arch)){ console.warn('[Arquitectura guardrail] arquitectura descartada: su primer módulo reproduce el anti-patrón que Círculo marcó como error.', arch); return false; }
+  return true;
+}
+
+// Guardrail nuevo: si el modelo manda 2 arquitecturas pero el criterio diferenciador es genérico/vacío/idéntico
+// entre ambas, no es una bifurcación real — se colapsa a 1 sola (la recomendada) en vez de forzar una elección falsa.
+const CRITERIOS_GENERICOS = ['orden distinto', 'más módulos', 'menos módulos', 'variante', 'diferente forma', ''];
+function bifurcacionEsReal(candidatas){
+  if(candidatas.length<2) return true; // no aplica, ya es 1 sola
+  const [a,b] = candidatas;
+  const ca = String(a.criterio_diferenciador||'').toLowerCase().trim();
+  const cb = String(b.criterio_diferenciador||'').toLowerCase().trim();
+  if(!ca || !cb) return false;
+  if(ca===cb) return false;
+  if(CRITERIOS_GENERICOS.some(g=>g && (ca.includes(g)||cb.includes(g)))) return false;
+  return true;
+}
+
+// Guardrail nuevo (caso C — retrato/pizza): una arquitectura NO es válida si su primer módulo reproduce
+// justo el anti-patrón que Círculo marcó como "errores". Una "estrategia" que empieza por el error que el
+// experto quiere erradicar no es una alternativa legítima aunque suene pedagógica — es el anti-patrón disfrazado.
+function primerModuloNoEsAntipatron(arch){
+  const errores = (understood.errores||'').toLowerCase();
+  if(!errores.trim()) return true; // sin anti-patrón registrado, no podemos chequear
+  const primerModulo = arch.modulos && arch.modulos[0];
+  if(!primerModulo) return true;
+  const textoPrimero = `${primerModulo.titulo} ${primerModulo.funcion_transformadora} ${primerModulo.cambio_observable}`.toLowerCase();
+  // palabras significativas del anti-patrón que aparezcan lideradas en el primer módulo = señal de alarma
+  const palabrasError = errores.split(/\s+/).filter(w=>w.length>5);
+  const solapamiento = palabrasError.filter(w=>textoPrimero.includes(w)).length;
+  // si el primer módulo comparte varias palabras clave con el anti-patrón Y su función es "hacer" eso (no "evitar"),
+  // es sospechoso. Heurístico conservador: 2+ solapamientos y sin negación explícita cerca.
+  const tieneNegacion = /\b(no|evita|antes de|sin|deja de)\b/.test(textoPrimero);
+  return !(solapamiento>=2 && !tieneNegacion);
+}
+
+// Guardrail 3 (heurístico, no bloqueante): ¿el último módulo se conecta con prueba_propia? Chequeo de palabras compartidas.
+function conectaConExperienciaIrreversible(arch){
+  const ultimo = arch.modulos[arch.modulos.length-1];
+  const textoUltimo = `${ultimo.cambio_observable} ${ultimo.anclaje}`.toLowerCase();
+  const palabrasClave = (understood.prueba_propia||'').toLowerCase().split(/\s+/).filter(w=>w.length>4);
+  return palabrasClave.some(w=>textoUltimo.includes(w));
+}
+
+async function runArquitectura(){
+  const contrato = entrarEtapa('arquitectura');
+  if(!contrato.ok){ falloSilencioso('Arquitectura'); if(contrato.mensajeUsuario) addMsg('circ', contrato.mensajeUsuario); finished=true; inpEl.placeholder='Recorrido completado ✦'; return; }
+  showTyping();
+  const sys = ARQUITECTURA_IDENTITY
+    .replace('"SLOTS_PLACEHOLDER"', JSON.stringify(priorContextString()))
+    .replace('"AVATAR_PLACEHOLDER"', JSON.stringify(window.__seleccion.avatar))
+    .replace('"PROMESA_PLACEHOLDER"', JSON.stringify(window.__seleccion.promesa));
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:2000, system:sys, messages:[{role:'user', content:'Genera las arquitecturas candidatas ahora.'}] }) });
+    const data=await res.json();
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    const candidatasBrutas = (reply.arquitecturas||[]).filter(arquitecturaValida);
+    if(candidatasBrutas.length===0){
+      console.warn('[Arquitectura guardrail] ninguna candidata pasó el guardrail (anclaje/distinción causal).', reply.arquitecturas);
+      addMsg('circ','Estoy teniendo problemas para organizar el camino sin inventar algo que no descubrimos juntos. ¿Podemos intentarlo de nuevo?');
+      finished=true; inpEl.placeholder='Recorrido completado ✦';
+      return;
+    }
+    let candidatas = candidatasBrutas;
+    if(candidatasBrutas.length>1 && !bifurcacionEsReal(candidatasBrutas)){
+      console.warn('[Arquitectura guardrail] el modelo generó 2 arquitecturas pero el criterio_diferenciador no es una bifurcación pedagógica real (genérico, vacío o idéntico). Se colapsa a 1 sola.', candidatasBrutas);
+      candidatas = [candidatasBrutas[0]];
+    }
+    candidatas.forEach(c=>{
+      if(!conectaConExperienciaIrreversible(c)) console.warn('[Arquitectura guardrail — aviso, no bloqueante] la arquitectura pasó el guardrail de anclaje pero el último módulo no muestra conexión clara con prueba_propia. Revisar manualmente.', c);
+    });
+    addMsg('circ', reply.mensaje_usuario || 'Con eso claro, el camino para llevar a esa persona se dibuja casi solo:');
+    renderArquitecturas(candidatas);
+    finished=false; awaitingOptionSelection=true; inpEl.placeholder='Elige un camino arriba…'; sendBtn.disabled=true;
+  }catch(err){
+    hideTyping();
+    addMsg('circ','Perdona, se me enredó algo al ordenar el camino. ¿Lo intentamos de nuevo?');
+    console.error(err);
+    finished=true;
+  }
+}
+
+function renderArquitecturas(candidatas){
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  const cardHtml = candidatas.map((c,i)=>`
+    <div class="arq-card" data-idx="${i}" onclick="elegirArquitectura(${i})" style="border:1.5px solid var(--line-2); border-radius:12px; padding:14px 16px; margin-bottom:10px; cursor:pointer; background:var(--panel);">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:${c.label.toLowerCase().includes('recomendada')?'var(--ok)':'var(--ink-faint)'}; font-weight:600; margin-bottom:4px;">${escapeHtml(c.label)}${c.label.toLowerCase().includes('recomendada')?' ⭐':''} · ${c.modulos.length} módulos</div>
+      <div style="font-size:12.5px; color:var(--ink-dim); margin-bottom:8px; font-style:italic;">${escapeHtml(c.resumen||'')}</div>
+      ${c.criterio_diferenciador?`<div style="font-size:11.5px; color:var(--cyan); margin-bottom:8px;">${escapeHtml(c.criterio_diferenciador)}</div>`:''}
+      ${c.modulos.map((m,mi)=>`<div style="font-size:13px; padding:6px 0; border-top:${mi>0?'1px solid var(--line)':'none'};"><b>${mi+1}. ${escapeHtml(m.titulo)}</b><br><span style="color:var(--ink-dim); font-size:12px;">${escapeHtml(m.cambio_observable)}</span></div>`).join('')}
+    </div>`).join('');
+
+  if(candidatas.length===1){
+    // No hay bifurcación pedagógica real: se presenta 1 sola arquitectura como decisión ya tomada, con justificación, no como elección forzada.
+    wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); font-weight:600; margin-bottom:8px;">Este es el camino — no había una segunda estrategia legítima que ofrecerte</div>
+      ${candidatas[0].justificacion_unica?`<div style="font-size:12.5px; color:var(--ink-dim); margin-bottom:10px; font-style:italic;">${escapeHtml(candidatas[0].justificacion_unica)}</div>`:''}
+      ${cardHtml}
+      <button onclick="elegirArquitectura(0)" style="margin-top:6px; background:var(--grad); border:none; color:#0c1320; font-weight:600; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:13px;">Confirmar y continuar</button>
+    </div>`;
+  } else {
+    wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); font-weight:600; margin-bottom:10px;">¿Cuál camino se siente más natural para llevar a tu alumno hasta el final?</div>
+      ${cardHtml}
+    </div>`;
+  }
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+  window.__arquitecturas=candidatas;
+}
+
+function elegirArquitectura(idx){
+  const arch = window.__arquitecturas[idx];
+  awaitingOptionSelection=false;
+  window.__arqElegida = arch;
+  addMsg('circ','Ese es el camino. Ahora, en cada paso, lo que importa no es qué actividad poner — es qué tiene que pasarle de verdad a la persona para saber que cambió.');
+  const panel=document.querySelector('.panel');
+  const old=document.getElementById('panel-arquitectura'); if(old) old.remove();
+  const sec=document.createElement('div'); sec.className='panel-section'; sec.id='panel-arquitectura';
+  sec.innerHTML = `<div class="ps-head"><span class="ps-dot"></span>Arquitectura · confirmada</div>` +
+    arch.modulos.map((m,i)=>`<div class="under-item filled"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">Módulo ${i+1} · ${escapeHtml(m.titulo)}</span></div><div class="ui-value">${escapeHtml(m.cambio_observable)}</div></div>`).join('');
+  panel.appendChild(sec);
+  setTimeout(()=>{ pipelineStage(80,'Tomando cuerpo'); runEvidencia(); }, 1200);
+}
+
+// ===== EVIDENCIA =====
+// Distinción central (feedback de esta sesión): Evidencia NO es "qué ejercicio" (eso es formato/Materialización).
+// Evidencia responde: ¿qué tiene que HACER, PRODUCIR o NOTAR el alumno para demostrar que el cambio del módulo
+// ocurrió? El ejercicio es solo un vehículo — se decide después. Cada módulo de Arquitectura ya trae un
+// cambio_observable; Evidencia lo convierte en una prueba concreta de que ese cambio es real, no declarado.
+
+const EVIDENCIA_IDENTITY = `Eres el módulo de Evidencia de Círculo. Para cada módulo de la arquitectura ya elegida, defines QUÉ EVIDENCIA demuestra que el cambio de ese módulo ocurrió de verdad — no qué ejercicio se hace (eso es formato, viene después).
+
+DISTINCIÓN CLAVE (no la rompas): una evidencia es algo que el alumno HACE, PRODUCE o RECONOCE que antes no podía. NO es una actividad ("haz un quiz"), es el resultado que demostraría el cambio ("identifica correctamente 3 masas distintas sin mirar receta"). El ejercicio que produzca esa evidencia se decide en otra etapa; aquí no lo menciones.
+
+REGLA: la evidencia de cada módulo tiene que corresponder EXACTAMENTE al cambio_observable de ese módulo (que ya está anclado en Círculo). No inventes una evidencia más ambiciosa ni distinta a la que el módulo promete. Si el módulo dice "el alumno puede X", la evidencia es la demostración observable de X, ni más ni menos.
+
+Para cada módulo produce: {"modulo":"título del módulo", "evidencia":"qué hace/produce/reconoce el alumno que demuestra el cambio — observable, concreto", "como_se_reconoce":"cómo se distingue una evidencia real de una falsa (alguien que 'cree' que aprendió vs. alguien que de verdad puede)", "anclaje":"qué del módulo/Círculo la sostiene"}.
+
+La evidencia del ÚLTIMO módulo debe ser la experiencia irreversible misma (prueba_propia de Círculo) — ahí es donde el alumno deja de depender del experto.
+
+MÓDULOS DE LA ARQUITECTURA ELEGIDA:
+${JSON.stringify('MODULOS_PLACEHOLDER')}
+
+MEMORIA DE CÍRCULO (contexto — prueba_propia y escalon son las anclas principales de evidencia):
+${JSON.stringify('SLOTS_PLACEHOLDER')}
+
+Responde SOLO JSON:
+{
+  "mensaje_usuario": "frase breve y cálida presentando qué es esto — sin jerga de 'evidencia' o 'módulos'",
+  "evidencias": [ {"modulo":"...","evidencia":"...","como_se_reconoce":"...","anclaje":"..."} ]
+}`;
+
+function evidenciaValida(ev){
+  return !!(ev && ev.modulo && String(ev.modulo).trim() && ev.evidencia && String(ev.evidencia).trim() && ev.anclaje && String(ev.anclaje).trim());
+}
+
+async function runEvidencia(){
+  const contrato = entrarEtapa('evidencia');
+  if(!contrato.ok){ falloSilencioso('Evidencia'); if(contrato.mensajeUsuario) addMsg('circ', contrato.mensajeUsuario); finished=true; inpEl.placeholder='Recorrido completado ✦'; return; }
+  showTyping();
+  const arch = window.__arqElegida;
+  const sys = EVIDENCIA_IDENTITY
+    .replace('"MODULOS_PLACEHOLDER"', JSON.stringify(arch.modulos))
+    .replace('"SLOTS_PLACEHOLDER"', JSON.stringify(priorContextString()));
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:2000, system:sys, messages:[{role:'user', content:'Define la evidencia de cada módulo ahora.'}] }) });
+    const data=await res.json();
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    const evidencias = (reply.evidencias||[]).filter(evidenciaValida);
+    if(evidencias.length===0){
+      addMsg('circ','Tuve un problema definiendo la evidencia sin inventar actividades. ¿Intentamos de nuevo?');
+      finished=true; inpEl.placeholder='Recorrido completado ✦';
+      return;
+    }
+    addMsg('circ', reply.mensaje_usuario || 'Y para cada paso, esto es lo que quien aprende tendría que poder hacer de verdad:');
+    renderEvidencia(evidencias);
+    window.__evidencias = evidencias;
+    setTimeout(()=>{ pipelineStage(86,'Ya tiene forma'); runForma(); }, 1400);
+  }catch(err){
+    hideTyping();
+    addMsg('circ','Ups — tuve un problema con la evidencia. ¿Intentamos de nuevo?');
+    console.error(err);
+    finished=true;
+  }
+}
+
+function renderEvidencia(evidencias){
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); font-weight:600; margin-bottom:10px;">Cómo sabremos que cada cambio ocurrió de verdad</div>
+    ${evidencias.map((e,i)=>`<div style="padding:10px 0; border-top:${i>0?'1px solid var(--line)':'none'};">
+      <div style="font-size:13px; font-weight:600; margin-bottom:3px;">${i+1}. ${escapeHtml(e.modulo)}</div>
+      <div style="font-size:13px; color:var(--ink); margin-bottom:4px;">${escapeHtml(e.evidencia)}</div>
+      ${e.como_se_reconoce?`<div style="font-size:11.5px; color:var(--ink-dim); font-style:italic;">Cómo distinguir la real de la falsa: ${escapeHtml(e.como_se_reconoce)}</div>`:''}
+    </div>`).join('')}
+  </div>`;
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+  // Reflejo en el panel lateral
+  const panel=document.querySelector('.panel');
+  const old=document.getElementById('panel-evidencia'); if(old) old.remove();
+  const sec=document.createElement('div'); sec.className='panel-section'; sec.id='panel-evidencia';
+  sec.innerHTML = `<div class="ps-head"><span class="ps-dot"></span>Evidencia · por módulo</div>` +
+    evidencias.map((e,i)=>`<div class="under-item filled"><div class="ui-head"><span class="ui-check">✓</span><span class="ui-label">${escapeHtml(e.modulo)}</span></div><div class="ui-value">${escapeHtml(e.evidencia)}</div></div>`).join('');
+  panel.appendChild(sec);
+}
+
+// ===== FORMA DEL PRODUCTO + BLUEPRINT (módulo final) =====
+// Descubrimiento de esta sesión: el último trabajo cognitivo NO es "elegir formato" (eso emerge casi solo de
+// la evidencia = Tipo 1). Es la COHERENCIA GLOBAL — mirar todas las evidencias juntas y decidir la forma del
+// producto completo. El medio de cada módulo cae de ahí. Y el entregable son DOS activos distintos:
+//   1. Estructura del Producto Digital (lo que el usuario venderá — esqueleto listo para llenar de contenido)
+//   2. Blueprint Estratégico (privado, reutilizable — el cerebro del negocio para membresía/ads/lanzamientos)
+
+const FORMA_IDENTITY = `Eres el módulo final de Círculo. Tu trabajo es la COHERENCIA GLOBAL: mirar TODAS las evidencias juntas (no módulo por módulo) y decidir la forma del producto completo, y de ahí el medio de cada módulo.
+
+DISTINCIÓN IMPORTANTE:
+- El MEDIO de cada módulo emerge casi solo de su evidencia (si la evidencia es "identifica 3 masas sin receta", el medio no puede ser solo texto — necesita imágenes/práctica). Eso lo decides tú directamente, sin preguntar.
+- La FORMA del producto completo (workbook / recorrido guiado con práctica / kit de plantillas / curso en video / híbrido) es una decisión de coherencia: ¿qué contiene todo esto como una sola experiencia, no 5 piezas sueltas? Aquí SÍ puede haber 2 formas legítimas — si las hay, ofrécelas; si solo hay una coherente, decídela y explícala (misma regla que Arquitectura: nunca fabriques opciones falsas).
+
+También produces DOS activos distintos (esto es clave):
+1. "producto_estructura": el esqueleto del producto que el usuario VENDERÁ — limpio, sin razonamiento interno, con: nombre provisional, forma, y para cada módulo {titulo, medio_recomendado, que_contiene}. IMPORTANTE: esto es el PLAN del producto listo para llenarse de contenido real — NO afirmes que el contenido de cada lección ya está escrito, porque no lo está. Es la estructura terminada, no las lecciones terminadas.
+2. "blueprint_privado": el documento estratégico del creador, que NO se vende. Resume el porqué de cada decisión: por qué este avatar, por qué esta promesa, por qué estos módulos en este orden, qué evidencia demuestra cada uno, qué medios. Este es el activo reutilizable para marketing/ads/lanzamientos futuros.
+
+DATOS YA DESCUBIERTOS (única fuente — no inventes nada fuera de esto):
+avatar: AVATAR_PH
+promesa: PROMESA_PH
+modulos_arquitectura: MODULOS_PH
+evidencias: EVIDENCIAS_PH
+memoria_circulo: SLOTS_PH
+
+Responde SOLO JSON:
+{
+  "mensaje_usuario": "frase cálida de cierre — el usuario acaba de terminar; esto es su recompensa. Sin jerga técnica.",
+  "forma_unica": true,
+  "forma_recomendada": {"nombre":"ej. Workbook con práctica guiada","por_que":"por qué esta forma es coherente con el conjunto de evidencias"},
+  "forma_alternativa": null,
+  "producto_estructura": {"nombre_provisional":"...","forma":"...","modulos":[{"titulo":"...","medio_recomendado":"...","que_contiene":"..."}]},
+  "blueprint_privado": {"avatar":"...","promesa":"...","por_que_este_camino":"...","evidencias_clave":"...","medios":"...","nota_reutilizacion":"para qué le servirá este blueprint después (ads, emails, lanzamientos)"}
+}`;
+
+function runForma(){
+  const contrato = entrarEtapa('forma');
+  if(!contrato.ok){ falloSilencioso('Forma'); if(contrato.mensajeUsuario) addMsg('circ', contrato.mensajeUsuario); finished=true; inpEl.placeholder='Recorrido completado ✦'; return; }
+  showTyping();
+  const sys = FORMA_IDENTITY
+    .replace('AVATAR_PH', JSON.stringify(window.__seleccion.avatar))
+    .replace('PROMESA_PH', JSON.stringify(window.__seleccion.promesa))
+    .replace('MODULOS_PH', JSON.stringify(window.__arqElegida.modulos))
+    .replace('EVIDENCIAS_PH', JSON.stringify(window.__evidencias))
+    .replace('SLOTS_PH', JSON.stringify(priorContextString()));
+  fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:2500, system:sys, messages:[{role:'user', content:'Ensambla la forma del producto y los dos activos ahora.'}] }) })
+  .then(r=>r.json()).then(data=>{
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    if(!reply || !reply.producto_estructura || !reply.blueprint_privado){
+      addMsg('circ','Tuve un problema ensamblando el blueprint. ¿Intentamos de nuevo?');
+      finished=true; return;
+    }
+    addMsg('circ', reply.mensaje_usuario || 'Ya sé cómo va a ser tu producto. Ahora escribo lo que va dentro de cada parte — no relleno, solo lo que de verdad hace que la persona cambie:');
+    window.__formaProducto = reply;
+    renderFormaResumen(reply);
+    setTimeout(()=>{ pipelineStage(90,'Casi lo tienes'); runDesarrollo(); }, 1400);
+  }).catch(err=>{
+    hideTyping(); addMsg('circ','Ups — problema ensamblando la forma del producto. ¿Intentamos de nuevo?'); console.error(err); finished=true;
+  });
+}
+
+function renderFormaResumen(r){
+  const est = r.producto_estructura;
+  const formaHtml = r.forma_recomendada ? `<b>Forma:</b> ${escapeHtml(r.forma_recomendada.nombre)} — <span style="color:var(--ink-dim); font-style:italic;">${escapeHtml(r.forma_recomendada.por_que||'')}</span>` : '';
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+    <div style="font-size:14px; font-weight:600; margin-bottom:6px;">${escapeHtml(est.nombre_provisional||'Tu producto')}</div>
+    <div style="font-size:12.5px; margin-bottom:8px;">${formaHtml}</div>
+    ${(est.modulos||[]).map((m,i)=>`<div style="font-size:12.5px; padding:4px 0;"><b>${i+1}. ${escapeHtml(m.titulo)}</b> · <span style="color:var(--cyan);">${escapeHtml(m.medio_recomendado||'')}</span></div>`).join('')}
+  </div>`;
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+// ===== DESARROLLO (contenido real de cada módulo) =====
+// Descubrimiento de esta sesión (feedback + Draft AG): Desarrollo NO es escribir una lección genérica con
+// plantilla (intro/conceptos/ejemplos/ejercicio, como hacía el Draft). Es escribir contenido cuyo ÚNICO
+// objetivo es provocar la evidencia ya definida para ese módulo. El contenido está subordinado a la evidencia,
+// no al revés. Producto activador compacto (máx 6 módulos), no curso universitario.
+
+const DESARROLLO_IDENTITY = `Eres el módulo de Desarrollo de Círculo. Desarrollas UN módulo de un producto digital activador (compacto, accionable — no una clase universitaria).
+
+DESCUBRIMIENTO CENTRAL (no lo rompas): la unidad de un módulo NO es "el texto del módulo". Es la EXPERIENCIA. Un módulo agrupa las experiencias de aprendizaje que el alumno necesita vivir para producir la evidencia definida. Una experiencia puede ser: una explicación, una analogía, una historia, un ejemplo, una demostración, una práctica, una reflexión, un contraste. NO hay una plantilla fija (no es "intro + concepto + ejemplo + ejercicio"). 
+
+TU PROCESO (en dos pasos, dentro de tu razonamiento):
+1. Pregúntate PRIMERO: para producir la evidencia de este módulo, ¿qué experiencias EXACTAS necesita vivir este alumno? Elige solo las necesarias — si la evidencia se produce con una sola experiencia, es UNA. Si necesita tres, son tres. El número lo dicta la evidencia, no una plantilla.
+2. LUEGO escribe el contenido de cada experiencia elegida. Cada experiencia debe justificar por qué existe (qué aporta a la evidencia). Si una experiencia no acerca al alumno a la evidencia, no la incluyas.
+
+REGLAS: idioma del oficio (nada académico), coherente con avatar/promesa, compacto (producto activador). El módulo cierra con el ejercicio MÍNIMO que produce la evidencia — si uno más simple la produce igual, usa el más simple.
+
+DATOS (única fuente — no inventes nada fuera de esto):
+modulo: MODULO_PH
+evidencia_a_producir: EVIDENCIA_PH
+avatar: AVATAR_PH
+promesa: PROMESA_PH
+voz_interior_del_metodo: VOZ_PH
+
+Responde SOLO JSON:
+{
+  "titulo": "...",
+  "experiencias": [ {"tipo":"explicación|analogía|historia|ejemplo|demostración|práctica|reflexión|contraste","para_que":"qué aporta a la evidencia — por qué esta experiencia existe","contenido":"el texto de esta experiencia, compacto"} ],
+  "ejercicio": {"consigna":"el ejercicio mínimo que produce la evidencia","que_demuestra":"qué evidencia queda demostrada"}
+}`;
+
+let desarrolloResultados=[], desarrolloIdx=0;
+
+async function runDesarrollo(){
+  const contrato = entrarEtapa('desarrollo');
+  if(!contrato.ok){ falloSilencioso('Desarrollo'); if(contrato.mensajeUsuario) addMsg('circ', contrato.mensajeUsuario); finished=true; inpEl.placeholder='Recorrido completado ✦'; return; }
+  desarrolloResultados=[]; desarrolloIdx=0;
+  const modulos = window.__formaProducto.producto_estructura.modulos || [];
+  const evidencias = window.__evidencias || [];
+  await desarrollarModulo(modulos, evidencias);
+}
+
+async function desarrollarModulo(modulos, evidencias){
+  if(desarrolloIdx >= modulos.length){
+    setTimeout(()=>{ pipelineStage(96,'Los últimos detalles'); runBonus(); }, 1000);
+    return;
+  }
+  const m = modulos[desarrolloIdx];
+  const ev = evidencias[desarrolloIdx] || evidencias.find(e=>e.modulo===m.titulo) || {evidencia:m.que_contiene||''};
+  showTyping();
+  const sys = DESARROLLO_IDENTITY
+    .replace('MODULO_PH', JSON.stringify(m))
+    .replace('EVIDENCIA_PH', JSON.stringify(ev.evidencia||''))
+    .replace('AVATAR_PH', JSON.stringify(window.__seleccion.avatar))
+    .replace('PROMESA_PH', JSON.stringify(window.__seleccion.promesa))
+    .replace('VOZ_PH', JSON.stringify(understood.voz||''));
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1800, system:sys, messages:[{role:'user', content:'Desarrolla este módulo ahora.'}] }) });
+    const data=await res.json();
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    if(reply && (reply.experiencias || reply.contenido)){
+      desarrolloResultados.push(reply);
+      renderModuloDesarrollado(reply, desarrolloIdx);
+    }
+    desarrolloIdx++;
+    setTimeout(()=>desarrollarModulo(modulos, evidencias), 600);
+  }catch(err){
+    hideTyping(); console.error(err);
+    desarrolloIdx++;
+    setTimeout(()=>desarrollarModulo(modulos, evidencias), 600);
+  }
+}
+
+function renderModuloDesarrollado(r, i){
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  const experienciasHtml = (r.experiencias||[]).map(exp=>`
+    <div style="margin-bottom:10px;">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--purple); font-weight:600; margin-bottom:2px;">${escapeHtml(exp.tipo||'')}<span style="color:var(--ink-faint); text-transform:none; font-weight:400;"> · ${escapeHtml(exp.para_que||'')}</span></div>
+      <div style="font-size:13px; line-height:1.6; color:var(--ink-dim); white-space:pre-wrap;">${escapeHtml(exp.contenido||'')}</div>
+    </div>`).join('');
+  wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600; margin-bottom:5px;">Módulo ${i+1} · ${(r.experiencias||[]).length} experiencia(s)</div>
+    <div style="font-size:14px; font-weight:600; margin-bottom:8px;">${escapeHtml(r.titulo||'')}</div>
+    ${experienciasHtml || `<div style="font-size:13px; color:var(--ink-dim); white-space:pre-wrap;">${escapeHtml(r.contenido||'')}</div>`}
+    ${r.ejercicio?`<div style="background:var(--bg-2); border-radius:8px; padding:10px 12px; border-left:3px solid var(--cyan); margin-top:8px;">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--cyan); font-weight:600; margin-bottom:3px;">Ejercicio</div>
+      <div style="font-size:12.5px;">${escapeHtml(r.ejercicio.consigna||'')}</div>
+      <div style="font-size:11px; color:var(--ink-faint); margin-top:4px; font-style:italic;">Demuestra: ${escapeHtml(r.ejercicio.que_demuestra||'')}</div>
+    </div>`:''}
+  </div>`;
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+// ===== BONUS (el acompañante estratégico) =====
+// El bonus no es "una checklist porque sí". Responde: ¿qué obstáculo sigue teniendo el aprendiz DESPUÉS del
+// producto, o qué recurso aceleraría más la transformación? Nace de necesidad, no de creatividad.
+
+const BONUS_IDENTITY = `Eres el módulo de Bonus de Círculo. El bonus es el acompañante estratégico del producto — las "papas fritas": lo que hace la transformación más fácil o más rápida, no relleno.
+
+REGLA: el bonus responde UNA de dos preguntas, nunca se inventa por creatividad:
+1. ¿Qué obstáculo sigue teniendo el aprendiz INCLUSO después de terminar el producto?
+2. ¿Qué recurso concreto aceleraría más esta transformación?
+
+El bonus debe ser un recurso concreto y accionable (plantilla, checklist, GPT/prompt especializado, calculadora, hoja de trabajo, guía rápida, mapa mental) — NO otro módulo, NO más contenido teórico. Elige el tipo por necesidad real, anclada en la evidencia y la fricción ya descubiertas.
+
+Propón 1 bonus recomendado (y máximo 1 alternativa solo si hay dos necesidades reales distintas).
+
+DATOS (única fuente): avatar AV, promesa PR, friccion_principal_del_alumno FR, evidencias EV, voz_interior VZ
+
+Responde SOLO JSON:
+{
+  "mensaje_usuario":"frase breve presentando el bonus como acompañante, no como relleno",
+  "bonus_recomendado":{"tipo":"ej. Plantilla / Checklist / GPT","nombre":"...","que_resuelve":"qué obstáculo posterior o qué acelera","por_que":"por qué este y no otro, anclado en la evidencia/fricción"},
+  "bonus_alternativo": null
+}`;
+
+function runBonus(){
+  const contrato = entrarEtapa('bonus');
+  if(!contrato.ok){ falloSilencioso('Bonus (opcional, se omite)'); runBlueprintFinal(); return; }
+  showTyping();
+  const sys = BONUS_IDENTITY
+    .replace('AV', JSON.stringify(window.__seleccion.avatar))
+    .replace('PR', JSON.stringify(window.__seleccion.promesa))
+    .replace('FR', JSON.stringify(understood.relevancia||''))
+    .replace('EV', JSON.stringify(window.__evidencias||[]))
+    .replace('VZ', JSON.stringify(understood.voz||''));
+  fetch("https://api.anthropic.com/v1/messages",{ method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:sys, messages:[{role:'user', content:'Propón el bonus ahora.'}] }) })
+  .then(r=>r.json()).then(data=>{
+    const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const reply=parseReply(txt);
+    hideTyping();
+    if(reply && reply.bonus_recomendado){
+      window.__bonus = reply;
+      renderBonus(reply);
+    }
+    setTimeout(()=>{ runBlueprintFinal(); }, 1200);
+  }).catch(err=>{
+    hideTyping(); console.error(err);
+    setTimeout(()=>{ runBlueprintFinal(); }, 800);
+  });
+}
+
+function renderBonus(r){
+  const b = r.bonus_recomendado;
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  const bonusCard=(x,rec)=>`<div style="border:1.5px solid ${rec?'var(--ok)':'var(--line-2)'}; border-radius:10px; padding:12px 14px; margin-bottom:8px;">
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:${rec?'var(--ok)':'var(--ink-faint)'}; font-weight:600; margin-bottom:4px;">${rec?'⭐ Bonus recomendado':'Alternativa'} · ${escapeHtml(x.tipo||'')}</div>
+    <div style="font-size:13.5px; font-weight:600; margin-bottom:3px;">${escapeHtml(x.nombre||'')}</div>
+    <div style="font-size:12.5px; color:var(--ink-dim);">${escapeHtml(x.que_resuelve||'')}</div>
+    <div style="font-size:11px; color:var(--ink-faint); margin-top:5px; font-style:italic;">${escapeHtml(x.por_que||'')}</div>
+  </div>`;
+  wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+    <div style="font-size:12.5px; color:var(--ink-dim); margin-bottom:8px;">${escapeHtml(r.mensaje_usuario||'')}</div>
+    ${bonusCard(b,true)}
+    ${r.bonus_alternativo?bonusCard(r.bonus_alternativo,false):''}
+  </div>`;
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+// ===== BLUEPRINT FINAL =====
+// Ahora sí el cierre: los dos activos que ChatGPT identificó. El producto ya está DESARROLLADO (contenido real),
+// no solo estructurado. El blueprint estratégico es el cerebro reutilizable.
+function runBlueprintFinal(){
+  const contrato = entrarEtapa('blueprint');
+  if(!contrato.ok){ falloSilencioso('Blueprint'); if(contrato.mensajeUsuario) addMsg('circ', contrato.mensajeUsuario); finished=true; inpEl.placeholder='Recorrido completado ✦'; return; }
+  const est = window.__formaProducto.producto_estructura;
+  const bp = window.__formaProducto.blueprint_privado;
+  const wrap=document.createElement('div'); wrap.className='msg circ'; wrap.style.maxWidth='100%';
+  const modsDesarrollados = desarrolloResultados.map((r,i)=>{
+    const nExp = (r.experiencias||[]).length;
+    const preview = (r.experiencias && r.experiencias[0] ? r.experiencias[0].contenido : (r.contenido||'')).slice(0,90);
+    return `<div style="padding:6px 0; border-top:${i>0?'1px solid var(--line)':'none'};">
+    <div style="font-size:12.5px; font-weight:600;">${i+1}. ${escapeHtml(r.titulo||'')}${nExp?` <span style="color:var(--ink-faint); font-weight:400;">· ${nExp} experiencia(s)</span>`:''}</div>
+    <div style="font-size:11px; color:var(--ink-faint);">${escapeHtml(preview)}…</div>
+  </div>`;
+  }).join('');
+  const bonusLine = window.__bonus ? `<div style="font-size:12px; margin-top:6px;"><b>+ Bonus:</b> ${escapeHtml(window.__bonus.bonus_recomendado.nombre||'')}</div>` : '';
+  wrap.innerHTML = `<div class="bubble" style="max-width:100%;">
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ok); font-weight:600; margin-bottom:4px;">✦ Activo 1 · Tu Producto Digital (desarrollado)</div>
+    <div style="font-size:11px; color:var(--ink-faint); margin-bottom:8px;">Con el contenido de cada módulo ya escrito, su ejercicio, y el bonus. Esto es lo que vendes.</div>
+    <div style="font-size:14px; font-weight:600; margin-bottom:6px;">${escapeHtml(est.nombre_provisional||'Tu producto')}</div>
+    ${modsDesarrollados}
+    ${bonusLine}
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--purple); font-weight:600; margin:16px 0 4px;">✦ Activo 2 · Blueprint Estratégico (privado)</div>
+    <div style="font-size:11px; color:var(--ink-faint); margin-bottom:8px;">El porqué de cada decisión. No se vende; alimenta tu marketing, ads y lanzamientos.</div>
+    <div style="font-size:12.5px; line-height:1.6;">
+      <div style="margin-bottom:5px;"><b>Avatar:</b> ${escapeHtml(bp.avatar||'')}</div>
+      <div style="margin-bottom:5px;"><b>Promesa:</b> ${escapeHtml(bp.promesa||'')}</div>
+      <div style="margin-bottom:5px;"><b>Por qué este camino:</b> ${escapeHtml(bp.por_que_este_camino||'')}</div>
+      <div style="margin-bottom:5px;"><b>Evidencias clave:</b> ${escapeHtml(bp.evidencias_clave||'')}</div>
+      <div style="color:var(--cyan); margin-top:8px;">${escapeHtml(bp.nota_reutilizacion||'')}</div>
+    </div>
+  </div>`;
+  msgsEl.appendChild(wrap); msgsEl.scrollTop=msgsEl.scrollHeight;
+  pipelineStage(100,'Aquí está. Es tuyo');
+  addMsg('circ','Entraste con conocimiento y saliste con tu primer producto digital desarrollado. Eso es Círculo.');
+  finished=true; inpEl.placeholder='Recorrido completado ✦';
+}
+
+async function kickoffState(){
+  showTyping(); sendBtn.disabled=true;
+  const s=curState();
+  const sys=buildSystemPrompt(STATE_ORDER[currentStateIdx], currentStateIdx>0?priorContextString():null);
+  const kickMsg=`[Inicio del estado. ${s.kickoff} Responde en el JSON habitual con todos los slots en null y ${s.completeFlag} false.]`;
+  try{
+    const reply=await callAI(sys, [...history, {role:'user', content:kickMsg}]);
+    hideTyping();
+    addMsg('circ', reply.mensaje);
+    history.push({role:'user', content:kickMsg});
+    history.push({role:'assistant', content:reply.mensaje});
+    sendBtn.disabled=false; inpEl.focus();
+  }catch(err){
+    hideTyping();
+    const fb = currentStateIdx===0 ? 'Hola, soy Círculo. ¿Qué sabes hacer que otros te piden aprender?' : 'Ahora destilemos lo esencial. ¿Qué te resulta obvio en lo tuyo que para alguien que empieza no lo es?';
+    addMsg('circ', fb); history.push({role:'assistant', content:fb});
+    sendBtn.disabled=false; inpEl.focus();
+  }
+}
+
+setStateUI();
+window.__CIRCULO_KICKOFF_DIFERIDO = kickoffState;
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CÍRCULO BRIDGE — Tasks 6.2B2 + 6.5B4
+     Integración completa: callAI + downstream → Motor Cognitivo
+     No modifica circulo_v0.html (archivo baseline).
+     Generado por build_bridge.js
+     ══════════════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  const API_BASE = "https://p01--circulo-backend--yrm5dkljl2jt.code.run";
+
+  // ── Ciclo de vida de la Sesión Cognitiva (frontend) ──────────────────────
+  // Todo el estado que el BRIDGE mismo posee (no circulo_v0.html) vive en un
+  // único objeto reemplazable, en vez de variables sueltas — "nueva sesión"
+  // es "reemplazar este objeto", no "recordar qué resetear". Ver
+  // initializeSession()/destroySession() más abajo para el ciclo completo.
+  let bridgeSession = {
+    id: 'ses_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+    downstreamInProgress: false, // guard anti-doble ejecución de esperarYRenderizarDownstream
+    restaurada: false, // true si hidratarSesionAlCargar() restauró una sesión existente (ver kickoff más abajo)
+    // Incremento 4 (corrección "eliminar turno de reacción redundante"):
+    // ver callAIReplacement y el decorador de addMsg más abajo. true durante
+    // la única ventana síncrona entre "callAIReplacement devolvió una
+    // respuesta con completed:true" y "sendMsg() llama addMsg('circ', ...)
+    // con esa misma respuesta" — nunca sobrevive más allá de esa llamada.
+    suprimirProximoMensajeCirc: false,
+  };
+  window.__CIRCULO_SESSION_ID = bridgeSession.id;
+
+  // ── Puntero de sesión (Incremento 7b) ─────────────────────────────────────
+  // localStorage guarda ÚNICAMENTE el sessionId — un puntero opaco, nunca
+  // memoria cognitiva. El contenido real (estado vigente, transcript) se
+  // relee siempre del backend vía /session/:id/hydration; localStorage nunca
+  // se convierte en un segundo almacenamiento canónico. Envuelto en
+  // try/catch porque localStorage puede lanzar en navegación privada.
+  const SESSION_STORAGE_KEY = 'circulo_session_id';
+  function leerSessionIdGuardado() {
+    try { return localStorage.getItem(SESSION_STORAGE_KEY); } catch (e) { return null; }
+  }
+  function guardarSessionId(id) {
+    try { localStorage.setItem(SESSION_STORAGE_KEY, id); } catch (e) { /* navegación privada u otro bloqueo — no fatal */ }
+  }
+  function olvidarSessionIdGuardado() {
+    try { localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) { /* no fatal */ }
+  }
+
+  // ── Los 16 slots canónicos ────────────────────────────────────────────────
+  const ALL_SLOTS = [
+    'conocimiento','antes','despues','evidencia',
+    'obvio','errores','esencia',
+    'relevancia','mundo_real','secuencia',
+    'ensayo','prueba_propia','escalon',
+    'voz','momento_solo','vida_propia',
+  ];
+
+  const STATUS_LABELS = {
+    completed:      '¡Listo! Hemos avanzado.',
+    paused_hitl:    'Tomemos un momento para revisar esto juntos.',
+    stopped_gate:   'Necesito un poco más de información para continuar.',
+    stopped_budget: 'Hemos alcanzado el límite de esta sesión.',
+    stopped_error:  'Sigo pensando… cuéntame un poco más.',
+  };
+
+  function buildEntendido(slots) {
+    if (!slots || typeof slots !== 'object')
+      return Object.fromEntries(ALL_SLOTS.map(k => [k, null]));
+    return Object.fromEntries(
+      ALL_SLOTS.map(k => [k, (slots[k] !== undefined && slots[k] !== '') ? slots[k] : null])
+    );
+  }
+
+  async function apiRequest(method, path, body) {
+    try {
+      const res = await fetch(API_BASE + path, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, error: { code: 'NETWORK_ERROR', message: e.message } };
+    }
+  }
+
+  // ── StateToV0Mapper inline ────────────────────────────────────────────────
+  // Replica la lógica de StateToV0Mapper.js para el contexto browser.
+  function mapStateToV0Globals(dto) {
+    if (!dto) return null;
+    const arqElegida = dto.arquitecturaElegida ? JSON.parse(JSON.stringify(dto.arquitecturaElegida)) : null;
+    // __evidencias: desde evidenciasModulos o fallback desde módulos de arq
+    let evidencias = [];
+    if (Array.isArray(dto.evidenciasModulos) && dto.evidenciasModulos.length > 0) {
+      evidencias = JSON.parse(JSON.stringify(dto.evidenciasModulos));
+    } else if (arqElegida && Array.isArray(arqElegida.modulos)) {
+      evidencias = arqElegida.modulos.map(m => ({
+        modulo: m.titulo, evidencia: m.cambio_observable || m.que_contiene || '',
+        como_se_reconoce: '', anclaje: 'reconstruido del módulo',
+      }));
+    }
+    return {
+      inferredAvatar:      dto.avatarInferido ? JSON.parse(JSON.stringify(dto.avatarInferido)) : null,
+      inferredPromesa:     dto.promesaInferida ? JSON.parse(JSON.stringify(dto.promesaInferida)) : null,
+      __seleccion:         { avatar: dto.avatarElegido ? JSON.parse(JSON.stringify(dto.avatarElegido)) : null, promesa: dto.promesaElegida ? JSON.parse(JSON.stringify(dto.promesaElegida)) : null },
+      __arqElegida:        arqElegida,
+      __evidencias:        evidencias,
+      __formaProducto:     dto.formaProducto ? JSON.parse(JSON.stringify(dto.formaProducto)) : null,
+      desarrolloResultados:Array.isArray(dto.desarrolloResultados) ? JSON.parse(JSON.stringify(dto.desarrolloResultados)) : [],
+      __bonus:             dto.bonus ? JSON.parse(JSON.stringify(dto.bonus)) : null,
+    };
+  }
+
+  function applyV0Globals(g) {
+    if (!g) return;
+    window.inferredAvatar      = g.inferredAvatar;
+    window.inferredPromesa     = g.inferredPromesa;
+    window.__seleccion         = g.__seleccion;
+    window.__arqElegida        = g.__arqElegida;
+    window.__evidencias        = g.__evidencias;
+    window.__formaProducto     = g.__formaProducto;
+    window.desarrolloResultados = g.desarrolloResultados;
+    window.__bonus             = g.__bonus;
+  }
+
+  // ── Sincronización de currentStateIdx con el backend (Incremento 7c, corrección) ──
+  // currentStateIdx sigue existiendo en el baseline (no se puede eliminar sin
+  // tocar circulo_v0.html) y ese baseline sigue incrementándolo dentro de
+  // onStateComplete original — pero esta función lo reduce a una PROYECCIÓN
+  // visual: cada vez que se llama, SOBREESCRIBE currentStateIdx con lo que
+  // el backend reporta como gramaticaActiva en ESE momento, sin importar qué
+  // valor tenía antes ni qué incremento local haya ocurrido mientras tanto.
+  // Nunca calcula el índice por su cuenta (ni +1 ni ningún otro criterio) —
+  // solo traduce gramaticaActiva → posición en STATE_ORDER.
+  async function sincronizarCurrentStateIdxDesdeBackend() {
+    const sessionId = window.__CIRCULO_SESSION_ID;
+    const r = await apiRequest('GET', '/session/' + sessionId);
+    if (!r.ok || !r.session) return; // sesión aún no existe (antes del primer turno real) — nada que sincronizar todavía
+    const idx = STATE_ORDER.indexOf(r.session.gramaticaActiva);
+    currentStateIdx = idx >= 0 ? idx : STATE_ORDER.length - 1; // gramaticaActiva null → las 5 ya cerraron
+  }
+
+  // ── callAIReplacement: un turno de una de las 5 gramáticas → /grammar-turn ──
+  // No invoca /pipeline: el downstream (Incremento 7d) ya no lo dispara el
+  // cliente en ningún punto — ver esperarYRenderizarDownstream más abajo.
+  //
+  // Incremento 8 (retiro de compatibilidad muerta): el body ya NO incluye
+  // etapa ni understood — el backend nunca los usó para decidir nada
+  // (state.gramaticaActiva es la única autoridad) y mantenerlos en el
+  // artefacto real era compatibilidad que sobrevivía sin ningún efecto. Se
+  // añade turnoClienteId en su lugar: una clave de idempotencia real,
+  // generada una vez por turno, que InteraccionCognitivaWriter usa para
+  // colapsar reenvíos del mismo turno en una sola ejecución del LLM.
+  async function callAIReplacement(sys, messages) {
+    // Antes de construir la solicitud: nunca confiar en un currentStateIdx
+    // que pudo haber quedado adelantado por el incremento local del legacy.
+    await sincronizarCurrentStateIdxDesdeBackend();
+
+    const sessionId = window.__CIRCULO_SESSION_ID;
+    const turnoClienteId = 'turno_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
+    const mensajeUsuario = (Array.isArray(messages) && messages.length > 0)
+      ? String(messages[messages.length - 1].content || '')
+      : '';
+
+    const response = await apiRequest('POST', '/grammar-turn', {
+      sessionId, turnoClienteId, mensajeUsuario,
+    });
+
+    if (!response.ok)
+      return { mensaje: response.error?.message || STATUS_LABELS.stopped_error, entendido: buildEntendido(null) };
+
+    const result = response.data;
+
+    // DURABILIDAD_ENTRADA_CONVERSACIONAL_1 §12 — result.procesamientoCompletado
+    // === false (HTTP 200, result.mensaje === null) significa que el mensaje
+    // del usuario quedó admitido y durable, pero el procesamiento cognitivo
+    // no produjo respuesta — nunca "silencio" ni un mensaje vacío tratado
+    // como respuesta cognitiva real. Mismo texto genérico que ya usa el
+    // caso `!response.ok` de arriba (STATUS_LABELS.stopped_error) — sin
+    // copy nuevo, solo evitar la falsa respuesta.
+    if (result.procesamientoCompletado === false) {
+      return { mensaje: STATUS_LABELS.stopped_error, entendido: buildEntendido(result.entendido) };
+    }
+
+    // Deliberadamente NO se resincroniza currentStateIdx aquí. callAIReplacement
+    // es un adaptador de transporte: su trabajo termina en devolver result
+    // traducido al contrato que sendMsg() espera. sendMsg() (circulo_v0.html,
+    // intocable) lee currentStateIdx justo después de este await para decidir
+    // qué completeFlag corresponde a ESTA respuesta — si esta función adelantara
+    // currentStateIdx a la gramática nueva antes de devolver el control, sendMsg
+    // preguntaría por el flag de la gramática nueva sobre una respuesta que solo
+    // trae el flag de la gramática vieja, y la condición nunca sería true (bug
+    // real observado: la validación manual post-corrección de IDENTITY cerró
+    // DESTINO y DESTILAR en el backend, pero el header se quedó en "Estado 1 ·
+    // Destino" las dos veces). currentStateIdx solo debe avanzar donde
+    // corresponde: dentro de onStateComplete(), después de que sendMsg ya
+    // interpretó esta respuesta con el estado que tenía al recibirla.
+
+    // Incremento 4 (corrección "eliminar turno de reacción redundante"):
+    // completed:true significa que ESTA respuesta es control de transición,
+    // no contenido conversacional — el único mensaje visible de la
+    // gramática siguiente (o el estado terminal de DAR VIDA) lo produce
+    // exclusivamente onStateComplete()/kickoffState() (baseline, sin
+    // cambios), un paso después. Se arma la señal AQUÍ, en el adaptador de
+    // transporte, porque es el único lugar que ya conoce result.completed
+    // sin tener que volver a interpretarlo — el decorador de addMsg
+    // (definido más abajo) es quien la consume, exactamente una vez.
+    if (result.completed === true) {
+      bridgeSession.suprimirProximoMensajeCirc = true;
+    }
+
+    return {
+      mensaje: result.mensaje,
+      entendido: buildEntendido(result.entendido),
+      proponiendo_cierre: !!result.proponiendo_cierre,
+      [result.completeFlag]: result.completed === true,
+    };
+  }
+
+  // ── kickoffState bridge: bienvenida estática de sesión nueva ──────────────
+  // kickoffState() (baseline, intocable) SIEMPRE llama a callAI() para
+  // generar el primer mensaje — incluido el de DESTINO, el primero que ve
+  // cualquier usuario nuevo. Eso significaba, hasta ahora, que ese saludo
+  // pasaba por /grammar-turn con un mensajeExperto sintético
+  // ("[Inicio del estado...]"), generando un Turno real ANTES del primer
+  // input genuino del usuario — la UI dependía incorrectamente del motor
+  // cognitivo solo para mostrar un saludo fijo. Se corrige aquí, no en
+  // circulo_v0.html ni en el prompt de kickoff: se intercepta kickoffState()
+  // exclusivamente para el primer estado (currentStateIdx===0) de una
+  // sesión genuinamente nueva (nunca restaurada) y se muestra el texto
+  // aprobado directamente — cero llamada a callAI, cero POST /grammar-turn,
+  // cero Turno, cero costo de LLM. Los kickoffs de las demás 4 gramáticas
+  // (currentStateIdx>0) siguen exactamente igual: SÍ deben reflejar
+  // comprensión real acumulada, así que siguen pasando por el motor.
+  const BIENVENIDA_ESTATICA = 'Hola, soy Círculo. Tienes un conocimiento valioso, cuéntame. ¿Qué es eso que sabes hacer y otros quieren aprender?';
+  let bienvenidaEstaticaMostrada = false;
+  const _legacyKickoffState = window.kickoffState;
+  window.kickoffState = async function () {
+    if (currentStateIdx === 0 && !bridgeSession.restaurada && !bienvenidaEstaticaMostrada) {
+      bienvenidaEstaticaMostrada = true;
+      addMsg('circ', BIENVENIDA_ESTATICA);
+      if (typeof sendBtn !== 'undefined' && sendBtn) sendBtn.disabled = false;
+      if (typeof inpEl !== 'undefined' && inpEl) inpEl.focus();
+      return;
+    }
+    if (typeof _legacyKickoffState === 'function') return _legacyKickoffState.apply(this, arguments);
+  };
+
+  // ── esperarYRenderizarDownstream (Incremento 7d) ──────────────────────────
+  // El bridge YA NO decide que DAR VIDA terminó y YA NO ordena un
+  // POST /pipeline que arranque el downstream — esa decisión y esa solicitud ahora
+  // son responsabilidad exclusiva del backend (InteraccionCognitivaWriter +
+  // PipelineDownstreamRunner), disparadas atómicamente con la confirmación
+  // del último Turno de DAR VIDA, exactamente una vez por sesión. Esta
+  // función SOLO espera (consultando pipelineStatus vía GET /session/:id,
+  // sin escribir nada) y renderiza — nunca solicita, nunca reintenta desde
+  // el cliente. Se llama tanto al vivo (tras confirmar DAR VIDA) como al
+  // restaurar una sesión cuyo downstream ya estaba en curso o completado
+  // (ver hidratarSesionAlCargar) — en ambos casos el comportamiento es
+  // idéntico: consultar hasta que se resuelva.
+  const DOWNSTREAM_POLL_MS = 1200;
+  const DOWNSTREAM_POLL_MAX_INTENTOS = 150; // ~3 minutos de espera máxima
+
+  async function esperarYRenderizarDownstream() {
+    if (bridgeSession.downstreamInProgress) {
+      console.warn('[Círculo Bridge] esperarYRenderizarDownstream llamado de nuevo mientras ya está en curso — ignorado');
+      return;
+    }
+    bridgeSession.downstreamInProgress = true;
+
+    const sessionId = window.__CIRCULO_SESSION_ID;
+
+    if (typeof window.pipelineStage === 'function') window.pipelineStage(62, 'Procesando tu conocimiento…');
+    if (typeof window.showTyping    === 'function') window.showTyping();
+
+    let status = null, intentos = 0;
+    while (intentos < DOWNSTREAM_POLL_MAX_INTENTOS) {
+      const r = await apiRequest('GET', '/session/' + sessionId);
+      if (r.ok && r.session) status = r.session.pipelineStatus;
+      if (status === 'completado' || status === 'fallido') break;
+      intentos++;
+      await new Promise(function(resolve) { setTimeout(resolve, DOWNSTREAM_POLL_MS); });
+    }
+
+    if (typeof window.hideTyping === 'function') window.hideTyping();
+
+    if (status !== 'completado') {
+      if (typeof window.addMsg === 'function') window.addMsg('circ', STATUS_LABELS.stopped_error);
+      bridgeSession.downstreamInProgress = false;
+      return;
+    }
+
+    // pipelineStatus:'completado' — traer el DTO completo (avatar,
+    // arquitectura, forma, etc.) que la lectura mínima de /session/:id
+    // (Incremento 5, deliberadamente acotada a lo canónico) no expone.
+    // Sigue siendo lectura pura, nunca una solicitud de trabajo nuevo.
+    const response = await apiRequest('GET', '/state/' + sessionId);
+    if (!response.ok || !response.data) {
+      if (typeof window.addMsg === 'function') window.addMsg('circ', STATUS_LABELS.stopped_error);
+      bridgeSession.downstreamInProgress = false;
+      return;
+    }
+
+    // Actualizar checkpoints
+    window.__CIRCULO_PIPELINE_CHECKPOINT = response.data.pipelineCheckpoint || null;
+    window.__CIRCULO_AGORA_CHECKPOINT    = response.data.agoraCheckpoint    || null;
+
+    const dto = response.data;
+    const g = mapStateToV0Globals(dto);
+    applyV0Globals(g);
+
+    // Render de inferencia (avatar + promesa)
+    if (typeof window.renderInferencePanel === 'function' && g.inferredAvatar)
+      window.renderInferencePanel(g.inferredAvatar, g.inferredPromesa);
+
+    // Render de arquitectura (envolver en candidatas para renderArquitecturas)
+    if (g.__arqElegida && typeof window.renderArquitecturas === 'function') {
+      const candidatas = [{
+        label: 'Recomendada ⭐',
+        resumen: '',
+        criterio_diferenciador: null,
+        justificacion_unica: 'El Motor determinó que no existía una segunda estrategia pedagógica legítima.',
+        modulos: g.__arqElegida.modulos || [],
+      }];
+      window.renderArquitecturas(candidatas);
+      if (typeof window.pipelineStage === 'function') window.pipelineStage(72, 'Arquitectura lista');
+    }
+
+    // Render de evidencias
+    if (g.__evidencias && g.__evidencias.length > 0 && typeof window.renderEvidencia === 'function') {
+      window.renderEvidencia(g.__evidencias);
+      if (typeof window.pipelineStage === 'function') window.pipelineStage(80, 'Evidencias definidas');
+    }
+
+    // Render de forma
+    if (g.__formaProducto && typeof window.renderFormaResumen === 'function') {
+      window.renderFormaResumen(g.__formaProducto);
+      if (typeof window.pipelineStage === 'function') window.pipelineStage(86, 'Forma del producto');
+    }
+
+    // Render de desarrollo (módulo a módulo)
+    if (g.desarrolloResultados && g.desarrolloResultados.length > 0 && typeof window.renderModuloDesarrollado === 'function') {
+      g.desarrolloResultados.forEach((r, i) => window.renderModuloDesarrollado(r, i));
+      if (typeof window.pipelineStage === 'function') window.pipelineStage(94, 'Módulos desarrollados');
+    }
+
+    // Render de bonus
+    if (g.__bonus && typeof window.renderBonus === 'function') {
+      window.renderBonus(g.__bonus);
+      if (typeof window.pipelineStage === 'function') window.pipelineStage(96, 'Bonus listo');
+    }
+
+    // Render final del blueprint (función real en v0: runBlueprintFinal)
+    if (typeof window.runBlueprintFinal === 'function') {
+      window.runBlueprintFinal();
+    } else if (typeof window.addMsg === 'function') {
+      window.addMsg('circ', 'Tu producto está listo. Es tuyo.');
+    }
+
+    if (typeof window.pipelineStage === 'function') window.pipelineStage(100, 'Completado ✦');
+    bridgeSession.downstreamInProgress = false;
+  }
+
+  // ── Revelado progresivo — exclusivamente visual (mejora de producto,
+  // posterior a Etapa 3) ──────────────────────────────────────────────────
+  // Objetivo: que un mensaje NUEVO de Círculo se sienta escrito, no
+  // despachado de una vez, sin tocar backend/pipeline/prompts/contratos ni
+  // el contenido del mensaje — el texto final es siempre, byte a byte, el
+  // mismo que _legacyAddMsg ya renderizó de forma síncrona e inmediata (ver
+  // decorador más abajo): esta capa solo reduce y vuelve a completar el
+  // textContent de la burbuja ya creada, nunca cambia qué se guarda, qué
+  // se envía, ni el order de los mensajes.
+  //
+  // hidratandoHistorial: true únicamente durante el replay de
+  // hidratarSesionAlCargar() — nunca se anima el historial, solo mensajes
+  // genuinamente nuevos (incluida la bienvenida de una sesión REALMENTE
+  // nueva, que si debe animarse).
+  let hidratandoHistorial = false;
+  // revealActivo: como mucho una animación en curso a la vez — la próxima
+  // (mensaje nuevo, o un reset de conversación) siempre cancela la anterior
+  // de forma limpia (el bubble anterior queda con su propio texto completo,
+  // nunca a mitad de camino).
+  let revealActivo = null;
+
+  function prefersReducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) {
+      return false; // entorno sin matchMedia (tests, navegadores viejos): nunca bloquea la animación por esto
+    }
+  }
+
+  // "pequeñas unidades de palabras" — cada fragmento es una racha de
+  // no-espacios más su espacio final. Nunca letra por letra.
+  function tokenizarParaRevelado(texto) {
+    return texto.match(/\S+\s*/g) || (texto ? [texto] : []);
+  }
+
+  // Segundo ajuste tras prueba visual real (primer feedback: "muy rápido";
+  // segundo feedback, ya con el ritmo más lento: "sigue viéndose extraño").
+  // El problema no era la velocidad — era el MECANISMO: reemplazar
+  // textContent de golpe, palabra por palabra, no tiene ninguna transición;
+  // cada palabra "aparece" de un salto seco, sin importar cuánto se
+  // espacien los pasos. Es exactamente lo que se ve mecánico. La forma
+  // real en que ChatGPT/Claude y el resto revelan texto no generado en
+  // vivo (reveal simulado, no streaming real) es: cada fragmento entra con
+  // una transición CSS breve (fundido + leve desplazamiento), y el
+  // INTERVALO entre que empieza a aparecer una palabra y la siguiente es
+  // más corto que la duración de esa transición — así varias palabras
+  // están fundiéndose a la vez, en cascada, en vez de una fila de saltos
+  // discretos. Un cursor parpadeante en la punta (el mismo recurso visual
+  // que cualquier UI de "escribiendo…") refuerza la sensación sin agregar
+  // ningún timer nuevo — es puro CSS.
+  let revelarEstilosInyectados = false;
+  function asegurarEstilosRevelado() {
+    if (revelarEstilosInyectados) return;
+    revelarEstilosInyectados = true;
+    try {
+      var style = document.createElement('style');
+      style.textContent = [
+        '.circulo-reveal-word{display:inline-block;opacity:0;transform:translateY(3px);',
+        'animation:circuloRevealWord 300ms ease-out forwards;}',
+        '@keyframes circuloRevealWord{to{opacity:1;transform:translateY(0);}}',
+        '.circulo-reveal-cursor{display:inline-block;width:2px;height:1em;margin-left:1px;',
+        'background:currentColor;opacity:.55;vertical-align:text-bottom;',
+        'animation:circuloRevealBlink 900ms step-end infinite;}',
+        '@keyframes circuloRevealBlink{50%{opacity:0;}}',
+        '@media (prefers-reduced-motion:reduce){',
+        '.circulo-reveal-word{animation:none;opacity:1;transform:none;}',
+        '.circulo-reveal-cursor{display:none;}}',
+      ].join('');
+      document.head.appendChild(style);
+    } catch (e) {
+      // Puramente cosmético — sin esta hoja de estilo, las palabras igual
+      // se revelan (solo sin fundido), nunca se pierde contenido por esto.
+    }
+  }
+
+  // Ritmo: ahora es el INTERVALO entre que empieza a revelarse un fragmento
+  // y el siguiente — nunca la duración visible de cada uno (esa la fija el
+  // CSS, arriba, siempre igual). Sigue siendo función del largo del
+  // mensaje y de su puntuación, nunca una cadencia constante por carácter,
+  // y sigue escalándose proporcionalmente si el total excedería el máximo
+  // razonable — "aceleración automática para respuestas largas", sin
+  // truncar el mensaje ni saltar fragmentos.
+  // Tercer ajuste tras prueba visual real (feedback: "aún se siente muy
+  // rápido") — de nuevo, solo estos números, mismo mecanismo.
+  const REVEAL_MAX_TOTAL_MS      = 5200; // "límite máximo razonable de duración"
+  const REVEAL_BASE_STAGGER_MS   = 72;
+  const REVEAL_COMMA_EXTRA_MS    = 130;  // pausa ligeramente mayor en coma/punto y coma/dos puntos
+  const REVEAL_SENTENCE_EXTRA_MS = 290;  // pausa mayor en punto/cierre de oración
+  const REVEAL_MIN_STAGGER_MS    = 24;
+
+  function calcularRitmo(fragmentos) {
+    const delays = fragmentos.map(function(frag) {
+      if (/[.!?…]\s*$/.test(frag)) return REVEAL_BASE_STAGGER_MS + REVEAL_SENTENCE_EXTRA_MS;
+      if (/[,;:]\s*$/.test(frag))  return REVEAL_BASE_STAGGER_MS + REVEAL_COMMA_EXTRA_MS;
+      return REVEAL_BASE_STAGGER_MS;
+    });
+    const total = delays.reduce(function(a, b) { return a + b; }, 0);
+    if (total <= REVEAL_MAX_TOTAL_MS || total === 0) return delays;
+    const factor = REVEAL_MAX_TOTAL_MS / total;
+    return delays.map(function(d) { return Math.max(REVEAL_MIN_STAGGER_MS, Math.round(d * factor)); });
+  }
+
+  // Recomendación de producto (prueba visual real): animar el mensaje
+  // ENTERO obliga al usuario a esperar todo ese tiempo para leerlo completo
+  // — innecesario, porque el efecto de "está escribiendo" ya se percibe
+  // con solo el primer tramo. Solo se revela por fragmentos el primer
+  // ~30% de las palabras; el resto aparece de inmediato, sin fundido
+  // propio (un fundido para "el resto" se veía como un efecto aparte y
+  // feo — se probó y se descartó) — el usuario nunca espera el mensaje
+  // completo.
+  const REVEAL_FRACCION_ANIMADA = 0.3;
+
+  // Revela texto dentro de bubbleEl (ya en el DOM, ya con su nodo .who
+  // hermano — ver intentarAnimarUltimoMensajeCirc). Cada fragmento del
+  // tramo animado entra como su propio <span> con la transición CSS de
+  // arriba — nunca cambia el TEXTO, solo cómo se presenta mientras se
+  // revela. Un cursor parpadeante marca la punta de escritura y
+  // desaparece al terminar. Primer fragmento siempre síncrono — nunca hay
+  // un instante en blanco perceptible antes de empezar. Termina SIEMPRE
+  // colapsado a bubbleEl.textContent === texto exacto, en texto plano (sin
+  // spans residuales) — tanto en el camino normal como en cancelación.
+  function revelarProgresivamente(bubbleEl, texto) {
+    if (revealActivo) revealActivo.cancelar();
+    const fragmentos = tokenizarParaRevelado(texto);
+    if (fragmentos.length === 0) { bubbleEl.textContent = texto; return; }
+    asegurarEstilosRevelado();
+    bubbleEl.textContent = ''; // limpia el shell antes de construir por fragmentos
+    const cursor = document.createElement('span');
+    cursor.className = 'circulo-reveal-cursor';
+    bubbleEl.appendChild(cursor);
+    const limiteAnimado = Math.max(1, Math.min(fragmentos.length, Math.ceil(fragmentos.length * REVEAL_FRACCION_ANIMADA)));
+    const delays = calcularRitmo(fragmentos.slice(0, limiteAnimado));
+    const estado = { timer: null, terminado: false };
+    estado.cancelar = function() {
+      if (estado.terminado) return;
+      estado.terminado = true;
+      if (estado.timer) clearTimeout(estado.timer);
+      bubbleEl.textContent = texto; // colapso limpio a texto plano exacto
+      if (revealActivo === estado) revealActivo = null;
+    };
+    revealActivo = estado;
+    let idx = 0;
+    function insertarFragmentoComoSpan(fragmento, refNode) {
+      // El espacio/salto de línea final del fragmento va COMO NODO DE TEXTO
+      // aparte, nunca dentro del span: un span inline-block colapsa/recorta
+      // el espacio en blanco pegado a su propio borde (hallazgo de la
+      // prueba visual — las palabras se pegaban entre sí sin espacio). Un
+      // nodo de texto plano, hermano del span, nunca sufre ese recorte.
+      const separador = fragmento.match(/\s*$/)[0];
+      const palabra = separador ? fragmento.slice(0, -separador.length) : fragmento;
+      const span = document.createElement('span');
+      span.className = 'circulo-reveal-word';
+      span.textContent = palabra;
+      bubbleEl.insertBefore(span, refNode);
+      if (separador) bubbleEl.insertBefore(document.createTextNode(separador), refNode);
+    }
+    function paso() {
+      if (estado.terminado) return;
+      insertarFragmentoComoSpan(fragmentos[idx], cursor);
+      if (typeof msgsEl !== 'undefined' && msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+      idx++;
+      if (idx < limiteAnimado) {
+        estado.timer = setTimeout(paso, delays[idx - 1]);
+      } else {
+        // Tramo animado terminado (recomendación de producto: solo ~30% se
+        // revela por fragmentos) — el resto aparece de inmediato, sin
+        // ningún fundido propio ni espera adicional (un fundido para "el
+        // resto" se veía como un efecto aparte y feo — se descarta).
+        estado.terminado = true;
+        bubbleEl.textContent = texto; // identidad byte a byte garantizada; sin spans residuales
+        if (revealActivo === estado) revealActivo = null;
+      }
+    }
+    paso();
+  }
+
+  // Intenta animar el ÚLTIMO mensaje 'circ' que _legacyAddMsg ya renderizó
+  // por completo, de forma síncrona, un instante antes. Deliberadamente
+  // defensivo: cualquier entorno sin las capacidades de DOM necesarias
+  // (por ejemplo los stubs mínimos de la suite de tests existente) deja el
+  // mensaje exactamente como _legacyAddMsg ya lo dejó — nunca se pierde ni
+  // se corrompe contenido por un problema puramente visual, y nunca se
+  // duplica el mensaje.
+  function intentarAnimarUltimoMensajeCirc(textoCompleto) {
+    try {
+      if (hidratandoHistorial) return;
+      if (prefersReducedMotion()) return;
+      if (typeof msgsEl === 'undefined' || !msgsEl) return;
+      const nodoMsg = msgsEl.lastElementChild;
+      if (!nodoMsg || typeof nodoMsg.querySelector !== 'function') return;
+      const bubbleEl = nodoMsg.querySelector('.bubble');
+      if (!bubbleEl) return;
+      revelarProgresivamente(bubbleEl, textoCompleto);
+    } catch (e) {
+      // Puramente visual — cualquier fallo aquí nunca debe afectar el
+      // contenido ya renderizado por _legacyAddMsg.
+    }
+  }
+
+  // ── addMsg bridge: captura el mensaje de apertura (Incremento 7b, corrección) ──
+  // kickoffState() (baseline, intocable) llama a addMsg('circ', ...) para
+  // mostrar el primer mensaje de cada gramática. El backend no puede
+  // observarlo por sí mismo — Círculo habla primero, no hay mensajeExperto
+  // real, así que nunca pasa por /grammar-turn ni genera un Turno. Mismo
+  // patrón "decorador, no reemplazo" que onStateComplete/elegirOpcion:
+  // addMsg ORIGINAL sigue renderizando exactamente igual; esto solo AGREGA
+  // el reporte, una vez, del primer mensaje 'circ' de una sesión NUEVA
+  // (nunca de una restaurada — bridgeSession.restaurada ya se puso en true
+  // ANTES de re-renderizar el kickoff restaurado, así que no se duplica).
+  // Se reporta vía /trace — la misma vía de observabilidad pura que ya
+  // existía — como 'conversacion.iniciada', nunca como un Turno ni mezclado
+  // en el transcript.
+  let kickoffYaCapturado = false;
+  const _legacyAddMsg = window.addMsg;
+  window.addMsg = function(who, text) {
+    // Incremento 4 (corrección "eliminar turno de reacción redundante"):
+    // consume la señal de callAIReplacement exactamente una vez, en la
+    // primera llamada 'circ' que sigue — que es, siempre, la propia
+    // respuesta de confirmación que sendMsg() está a punto de renderizar
+    // (addMsg('circ', reply.mensaje), inmediatamente después del await a
+    // callAI, sin ningún otro addMsg('circ', ...) posible en medio). No se
+    // renderiza y no se reporta como kickoff: el mensaje real de la
+    // gramática siguiente (o el estado terminal de DAR VIDA) lo produce,
+    // un paso después, onStateComplete()/kickoffState() — sin cambios.
+    if (who === 'circ' && bridgeSession.suprimirProximoMensajeCirc) {
+      bridgeSession.suprimirProximoMensajeCirc = false;
+      return;
+    }
+    if (typeof _legacyAddMsg === 'function') _legacyAddMsg(who, text);
+    if (who === 'circ') intentarAnimarUltimoMensajeCirc(text);
+    if (who === 'circ' && !kickoffYaCapturado && !bridgeSession.restaurada) {
+      kickoffYaCapturado = true;
+      apiRequest('POST', '/trace', {
+        sessionId: window.__CIRCULO_SESSION_ID,
+        evento: 'conversacion.iniciada',
+        datos: { gramatica: STATE_ORDER[currentStateIdx], mensaje: text },
+      }).catch(() => {});
+    }
+  };
+
+  // ── elegirOpcion bridge: reanuda el Motor tras pausa HITL ─────────────────
+  // Solo intercepta si hay pausa HITL pendiente; en caso contrario delega al legacy.
+  const _legacyElegirOpcion = window.elegirOpcion;
+  window.elegirOpcion = function(tipo, idx) {
+    if (!window.__CIRCULO_BRIDGE_ACTIVE || !window.__CIRCULO_AGORA_CHECKPOINT) {
+      if (typeof _legacyElegirOpcion === 'function') _legacyElegirOpcion(tipo, idx);
+      return;
+    }
+    // Hay una pausa HITL — registrar la elección y reanudar el Motor
+    if (!window.__seleccion) window.__seleccion = {};
+    if (tipo === 'avatar') window.__seleccion.avatar = (window.__avatarOps || [])[idx];
+    if (tipo === 'promesa') window.__seleccion.promesa = (window.__promesaOps || [])[idx];
+    // Si ambas elecciones están hechas, reanudar
+    if (window.__seleccion.avatar && window.__seleccion.promesa) {
+      (async () => {
+        const response = await apiRequest('POST', '/pipeline', {
+          sessionId: window.__CIRCULO_SESSION_ID, resume: true,
+        });
+        // Después de reanudar, activar downstream
+        if (response.ok && response.data.status === 'completed') {
+          const g = mapStateToV0Globals(response.data.state);
+          applyV0Globals(g);
+          if (typeof window.renderInferencePanel === 'function' && g.inferredAvatar)
+            window.renderInferencePanel(g.inferredAvatar, g.inferredPromesa);
+          window.__CIRCULO_AGORA_CHECKPOINT = null;
+        }
+      })();
+    }
+  };
+
+  // ── ningunaRepresenta bridge ───────────────────────────────────────────────
+  window.ningunaRepresenta = function() {
+    if (!window.__CIRCULO_BRIDGE_ACTIVE) {
+      // Usar legacy
+      return;
+    }
+    // Indicar al usuario sin invocar el flujo legacy de presentarOpciones
+    if (typeof window.addMsg === 'function')
+      window.addMsg('circ', 'Entendido. Dame un momento para reconsiderar el enfoque con todo lo que me contaste…');
+    // El downstream sigue 'ejecutando'/pausado del lado del backend (HITL) —
+    // esto solo vuelve a esperar su resolución, nunca solicita uno nuevo.
+    bridgeSession.downstreamInProgress = false;
+    setTimeout(esperarYRenderizarDownstream, 1200);
+  };
+
+  // ── onStateComplete: decorador, no reemplazo ──────────────────────────────
+  // onStateComplete original de v0 es la ÚNICA función que contiene
+  // "currentStateIdx++" (transición entre las 5 gramáticas) — sigue
+  // ejecutándose sin cambios para DESTINO/DESTILAR/TRADUCIR/ASCENSO, como
+  // bookkeeping puramente visual: por diseño (Incremento 7c), su entrada
+  // (reply[completeFlag] y el "entendido" que alimenta hasFullEvidence) sale
+  // siempre 1:1 de lo que /grammar-turn devolvió del estado canónico, así
+  // que nunca puede producir un veredicto distinto al del Gate del backend
+  // — no decide nada que el backend no haya decidido ya. Sustituirlo
+  // incondicionalmente por esperarYRenderizarDownstream (pensada solo para
+  // el downstream) congelaba currentStateIdx en 0: cada gramática completada
+  // esperaba downstream en vez de avanzar la UI. Solo al completar DAR VIDA
+  // (última gramática) se entra a esperar el downstream real.
+  const _legacyOnStateComplete = window.onStateComplete;
+  function onStateCompleteDecorated() {
+    // Observabilidad pura (Objetivo: sistema observable, no corrección de
+    // comportamiento): registra la decisión de transición en el mismo
+    // timeline de eventos del backend. Fire-and-forget — no se espera (sin
+    // await) y cualquier fallo se descarta con .catch(), para que esta línea
+    // no pueda alterar ni retrasar la rama real que se ejecuta a continuación.
+    apiRequest('POST', '/trace', {
+      sessionId: bridgeSession.id,
+      evento: 'gramatica.transicion',
+      datos: {
+        currentStateIdxAntes: currentStateIdx,
+        gramaticaActual: STATE_ORDER[currentStateIdx],
+        esUltimaGramatica: currentStateIdx === STATE_ORDER.length - 1,
+        rama: (currentStateIdx < STATE_ORDER.length - 1) ? 'avanza_siguiente_gramatica' : 'entra_downstream_final',
+      },
+    }).catch(() => {});
+
+    if (currentStateIdx < STATE_ORDER.length - 1) {
+      if (typeof _legacyOnStateComplete === 'function') _legacyOnStateComplete();
+      // El legacy incrementa currentStateIdx dentro de SU PROPIO setTimeout
+      // (1700ms, ver comentario "decorador, no reemplazo" arriba). Se
+      // reafirma la proyección real del backend DESPUÉS de esa ventana, para
+      // que ningún incremento local sobreviva como fuente de verdad más
+      // allá de ella — currentStateIdx nunca queda, ni temporalmente,
+      // definido solo por el +1 local.
+      setTimeout(() => { sincronizarCurrentStateIdxDesdeBackend(); }, 1900);
+      return;
+    }
+    esperarYRenderizarDownstream();
+  }
+
+  // ── Nueva Sesión Cognitiva: ciclo de vida explícito del frontend ─────────
+  // Objetivo: crear un producto digital nuevo sin refrescar el navegador, y
+  // que el usuario quede exactamente en el mismo estado que si acabara de
+  // abrir Círculo por primera vez.
+  //
+  // Límite de diseño explícito (no un descuido): el estado conversacional
+  // real — currentStateIdx, understood, history, finished, userTurns,
+  // pendingInferenceQuestion, awaitingOptionSelection, desarrolloResultados,
+  // desarrolloIdx, pipelineProgress, inferredAvatar/inferredPromesa — vive en
+  // variables let DENTRO de circulo_v0.html, un archivo que este proyecto
+  // no modifica. No existe una API de JavaScript para enumerar el scope
+  // léxico de otro <script> tag, así que no hay forma de "envolver" esas
+  // variables en un objeto propiedad del bridge sin tocar ese archivo. Esta
+  // función es la única, centralizada, documentada lista de qué resetear —
+  // la alternativa (repetir un reset parcial en cada lugar que lo necesite)
+  // es exactamente el tipo de bug que causó la autopsia del Smoke Test #2,
+  // ahora del lado del frontend. Cualquier estado conversacional nuevo que
+  // se agregue a circulo_v0.html en el futuro debe añadirse aquí también.
+  //
+  // El estado que SÍ es propiedad del bridge (bridgeSession y los globals
+  // window.* que el propio bridge escribe vía applyV0Globals) no tiene ese
+  // límite: se reinicia reemplazando el objeto completo, no campo por campo.
+
+  /**
+   * Cierra la Sesión Cognitiva actual del frontend. No hay recursos que
+   * liberar del lado del cliente (no hay sockets ni polling abiertos) — solo
+   * deja una marca de observabilidad en el mismo timeline de eventos del
+   * backend. Fire-and-forget, igual que el resto de los beacons de /trace.
+   */
+  function destroySession() {
+    if (!bridgeSession.id) return; // nada que destruir (no debería ocurrir)
+    apiRequest('POST', '/trace', {
+      sessionId: bridgeSession.id,
+      evento: 'session.destroyed',
+      datos: {},
+    }).catch(() => {});
+  }
+
+  /**
+   * Único punto de entrada para "empezar de cero": cierra la sesión anterior,
+   * crea una Sesión Cognitiva nueva (nuevo sessionId — el backend le
+   * provisionará automáticamente un CognitiveState, un OrchestratorService y
+   * un LLMService propios y aislados la primera vez que la toque, ver
+   * CognitiveSessionRegistry en el backend), reinicia todo el estado
+   * temporal del frontend, y arranca la conversación desde cero — ya con el
+   * bridge activo, así que el primer turno pasa correctamente por
+   * /grammar-turn.
+   */
+  function initializeSession() {
+    destroySession();
+
+    bridgeSession = {
+      id: 'ses_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      downstreamInProgress: false,
+      restaurada: false,
+      suprimirProximoMensajeCirc: false,
+    };
+    kickoffYaCapturado = false; // esta sesión nueva tiene su propio kickoff por capturar
+    bienvenidaEstaticaMostrada = false; // "Iniciar de nuevo" también es una conversación nueva
+    window.__CIRCULO_SESSION_ID          = bridgeSession.id;
+    guardarSessionId(bridgeSession.id); // Incremento 7b: sobrevive a un refresh futuro
+    window.__CIRCULO_PIPELINE_CHECKPOINT = null;
+    window.__CIRCULO_AGORA_CHECKPOINT    = null;
+    window.__seleccion          = null;
+    window.__arqElegida         = null;
+    window.__evidencias         = null;
+    window.__avatarOps          = null;
+    window.__promesaOps         = null;
+    window.__arquitecturas      = null;
+    window.__formaProducto      = null;
+    window.__bonus              = null;
+    window.desarrolloResultados = null;
+    window.inferredAvatar       = null;
+    window.inferredPromesa      = null;
+
+    // Estado conversacional de v0 — ver nota de límite de diseño arriba.
+    currentStateIdx = 0;
+    userTurns = 0;
+    finished = false;
+    history = [];
+    understood = {
+      conocimiento:null, antes:null, despues:null, evidencia:null,
+      obvio:null, errores:null, esencia:null,
+      relevancia:null, mundo_real:null, secuencia:null,
+      ensayo:null, prueba_propia:null, escalon:null,
+      voz:null, momento_solo:null, vida_propia:null,
+    };
+    pipelineProgress = 0;
+    inferredAvatar = null;
+    inferredPromesa = null;
+    awaitingOptionSelection = false;
+    pendingInferenceQuestion = false;
+    desarrolloResultados = [];
+    desarrolloIdx = 0;
+
+    // Reset visual: reutiliza funciones REALES de v0, no reimplementa DOM.
+    // Revelado progresivo: la conversación cambia por completo — cualquier
+    // animación en curso termina limpia (su propio texto completo) antes
+    // de que su nodo desaparezca con el reset.
+    if (revealActivo) revealActivo.cancelar();
+    if (typeof msgsEl !== 'undefined' && msgsEl) msgsEl.innerHTML = '';
+    const banner = document.getElementById('doneBanner');
+    if (banner) banner.classList.remove('show');
+    if (typeof updateTurnBadge === 'function') updateTurnBadge();
+    if (typeof setStateUI === 'function') setStateUI();
+    // Bugfix (preexistente, revelado al conectar Construcción al Experience
+    // Shell): understood ya se reinició arriba, pero nadie volvía a proyectar
+    // ese reset sobre el panel — los .ui-value/.filled seguían mostrando el
+    // contenido de la sesión anterior hasta el primer dato nuevo real.
+    // hidratarSesionAlCargar() ya resuelve exactamente este mismo caso
+    // (proyectar un estado vacío) con updatePanel([]) — se reutiliza esa
+    // misma llamada aquí, en vez de una segunda estrategia de limpieza.
+    if (typeof updatePanel === 'function') updatePanel([]);
+
+    apiRequest('POST', '/trace', {
+      sessionId: bridgeSession.id,
+      evento: 'session.created',
+      datos: {},
+    }).catch(() => {});
+
+    if (typeof kickoffState === 'function') kickoffState();
+  }
+
+  /**
+   * Restaura una sesión existente al cargar/recargar la página (Incremento
+   * 7b) — reconstruye currentStateIdx, understood y el transcript visible
+   * EXCLUSIVAMENTE desde GET /session/:id/hydration (SessionHydrator, ver
+   * backend). Nunca deduce la gramática contando pantallas ni reconstruye
+   * slots leyendo mensajes: ambos vienen tal cual del estado canónico.
+   *
+   * Límite de diseño estructural (no un descuido): circulo_v0.html dispara
+   * kickoffState() de forma incondicional y SÍNCRONA al final de su propio
+   * <script> — antes de que ESTE <script> (el bridge) llegue a ejecutarse.
+   * No hay forma de interceptar esa llamada sin modificar circulo_v0.html
+   * (fuera de alcance). Cuando había una sesión que restaurar, esa llamada
+   * inicial ya disparó un fetch directo a Anthropic que esta función no
+   * puede cancelar — solo puede garantizar que, en cuanto la hidratación
+   * responda, el DOM y el estado conversacional queden en el valor
+   * correcto, descartando lo que ese kickoff perdido haya escrito mientras
+   * tanto. El mensaje de apertura de una sesión NUEVA nunca se ve afectado.
+   */
+  async function hidratarSesionAlCargar() {
+    const storedId = leerSessionIdGuardado();
+    if (!storedId) {
+      // Sin puntero guardado: comportamiento explícito ya existente (sesión
+      // nueva, kickoff normal, ya en curso). Solo falta guardar el puntero
+      // de ESTA sesión para que un refresh futuro sí la encuentre.
+      guardarSessionId(bridgeSession.id);
+      return;
+    }
+
+    // Hay un puntero guardado: ESTA NO ES una sesión nueva, sin importar si
+    // la hidratación termina en éxito o en fallo — así que kickoffState()
+    // (ya disparado, ver nota de límite de diseño) NO debe poder registrar
+    // un kickoff duplicado para una sesión que ya tenía el suyo. Se
+    // restablece a false más abajo únicamente en la rama SESSION_NOT_FOUND,
+    // que sí es, de verdad, una sesión nueva.
+    kickoffYaCapturado = true;
+
+    bridgeSession.id = storedId;
+    window.__CIRCULO_SESSION_ID = storedId;
+
+    const response = await apiRequest('GET', '/session/' + storedId + '/hydration');
+
+    if (!response.ok) {
+      if (response.error && response.error.code === 'SESSION_NOT_FOUND') {
+        // El puntero guardado ya no corresponde a ninguna sesión real —
+        // comportamiento explícito ya existente: arrancar una sesión nueva.
+        olvidarSessionIdGuardado();
+        bridgeSession.id = 'ses_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        window.__CIRCULO_SESSION_ID = bridgeSession.id;
+        guardarSessionId(bridgeSession.id);
+        kickoffYaCapturado = false; // esta SÍ es una sesión nueva de verdad — su kickoff se captura normalmente
+        return; // kickoffState() (ya en curso) sigue su camino normal
+      }
+      // Fallo técnico (red, servidor caído, etc.): nunca se borra memoria
+      // local ni se crea otra sesión en silencio. kickoffYaCapturado se
+      // queda en true — este mensaje de error no es un kickoff.
+      console.warn('[Círculo Bridge] Fallo al hidratar sesión existente:', response.error);
+      if (typeof window.addMsg === 'function')
+        window.addMsg('circ', 'No pude recuperar tu conversación anterior. Puedes recargar para reintentar, o usar "Iniciar de nuevo" para empezar otra.');
+      return;
+    }
+
+    // Éxito: la sesión existía de verdad — restaurar por completo,
+    // descartando cualquier cosa que kickoffState() haya escrito mientras
+    // tanto (ver nota de límite de diseño arriba). restaurada:true ANTES de
+    // re-renderizar nada — señal adicional (además de kickoffYaCapturado,
+    // ya true desde el principio de esta rama) de que ningún addMsg de aquí
+    // en más debe reportarse como kickoff nuevo.
+    bridgeSession.restaurada = true;
+
+    const estadoVigente = response.session.estadoVigente;
+    const transcript    = response.session.transcript || [];
+    const kickoff        = response.session.kickoff || null;
+
+    const idx = STATE_ORDER.indexOf(estadoVigente.gramaticaActiva);
+    currentStateIdx = idx >= 0 ? idx : STATE_ORDER.length - 1; // gramaticaActiva null → las 5 ya cerraron
+    understood = Object.assign({}, understood, estadoVigente.slots);
+    finished  = estadoVigente.gramaticaActiva === null;
+    userTurns = 0;
+    history   = [];
+
+    if (revealActivo) revealActivo.cancelar();
+    if (typeof msgsEl !== 'undefined' && msgsEl) msgsEl.innerHTML = '';
+    // Revelado progresivo: esto es HISTORIAL, no un mensaje nuevo — todo lo
+    // que addMsg('circ', ...) renderice dentro de este bloque debe aparecer
+    // completo, nunca animado. Se restablece a false apenas termina el
+    // replay, nunca sobrevive más allá de este bloque.
+    hidratandoHistorial = true;
+    // El mensaje de apertura, si se capturó, va PRIMERO — es cronológicamente
+    // anterior a cualquier Turno. Nunca se mezcla con el transcript (que
+    // sigue viniendo solo de Turnos): es un campo aparte, renderizado aparte.
+    if (kickoff && typeof addMsg === 'function') {
+      addMsg('circ', kickoff.mensaje);
+    }
+    transcript.forEach(function(turno) {
+      if (typeof addMsg === 'function') {
+        addMsg('user', turno.mensajeExperto);
+        addMsg('circ', turno.mensajeCirculo);
+      }
+      history.push({ role: 'user', content: turno.mensajeExperto });
+      history.push({ role: 'assistant', content: turno.mensajeCirculo });
+    });
+    hidratandoHistorial = false;
+
+    if (typeof updatePanel === 'function') updatePanel([]);
+    if (typeof setStateUI === 'function') setStateUI();
+    if (typeof updateTurnBadge === 'function') updateTurnBadge();
+    if (typeof hideTyping === 'function') hideTyping();
+    if (sendBtn) sendBtn.disabled = finished;
+
+    if (estadoVigente.pipelineStatus === 'pending' || estadoVigente.pipelineStatus === 'ejecutando'
+      || estadoVigente.pipelineStatus === 'completado') {
+      esperarYRenderizarDownstream();
+    }
+  }
+
+  /**
+   * Botón "Iniciar de nuevo": inyectado por JS (no modifica circulo_v0.html).
+   * Flotante, no interfiere con el layout existente.
+   */
+  function injectNuevaSesionButton() {
+    const btn = document.createElement('button');
+    btn.textContent = 'Iniciar de nuevo';
+    btn.setAttribute('type', 'button');
+    btn.style.cssText = [
+      'position:fixed', 'bottom:16px', 'right:16px', 'z-index:9999',
+      'padding:10px 16px', 'border-radius:8px', 'border:none',
+      'background:#1f1f1f', 'color:#fff', 'font-size:14px', 'cursor:pointer',
+      'box-shadow:0 2px 8px rgba(0,0,0,.25)',
+    ].join(';');
+    btn.addEventListener('click', () => initializeSession());
+    document.body.appendChild(btn);
+  }
+
+  // ── Activar overrides ─────────────────────────────────────────────────────
+  window.callAI         = callAIReplacement;
+  window.onStateComplete = onStateCompleteDecorated;
+  window.__CIRCULO_BRIDGE_ACTIVE = true;
+  window.__CIRCULO_INICIAR_DE_NUEVO = initializeSession; // expuesto para depuración/tests
+  window.__CIRCULO_HIDRATAR_AL_CARGAR = hidratarSesionAlCargar; // expuesto para tests (Incremento 7b)
+
+  injectNuevaSesionButton();
+
+  console.info('[Círculo Bridge] Activo — callAI + downstream interceptados. SessionId:', bridgeSession.id, '| API:', API_BASE);
+
+  // Incremento 7b: intenta restaurar una sesión existente en cuanto el
+  // bridge termina de cargar. Fire-and-forget deliberado — no bloquea el
+  // resto de la carga de la página. La promesa queda expuesta (no para uso
+  // en producción, sino para que un test pueda esperar a que esta ÚNICA
+  // invocación automática termine, sin tener que disparar una segunda).
+  window.__CIRCULO_HIDRATACION_INICIAL = hidratarSesionAlCargar();
+
+  // Corrección de orden de arranque: el baseline (inmutable) termina su
+  // propio <script> con una llamada SÍNCRONA e incondicional a
+  // kickoffState() — eso ocurre mientras este <script> (el del bridge)
+  // todavía ni empezó a parsearse, así que esa primera llamada usaba la
+  // función callAI original del baseline (fetch directo a Anthropic) en
+  // vez de callAIReplacement. build_bridge.js reemplaza esa invocación en
+  // el artefacto generado por una asignación diferida
+  // (window.__CIRCULO_KICKOFF_DIFERIDO = kickoffState — ver más abajo, no
+  // se ejecuta ahí).
+  //
+  // Corrección D-041 (hallazgo del primer E2E público): esta llamada
+  // diferida NO debe invocar window.__CIRCULO_KICKOFF_DIFERIDO() —esa
+  // variable guarda la referencia CRUDA a la función original, capturada
+  // por circulo_v0.html antes de que este bridge existiera, así que
+  // llamarla directamente evita por completo la intercepción de la
+  // bienvenida estática (D-034) instalada arriba en window.kickoffState.
+  // callAI sí quedaba bien interceptado con la llamada cruda (por eso el
+  // bug no se veía como un fetch directo a Anthropic, sino como un
+  // POST /grammar-turn real de todos modos) — pero el saludo estático
+  // nunca llegaba a evaluarse. Invocar window.kickoffState() en su lugar
+  // pasa por el wrapper ya instalado arriba: bienvenida estática para una
+  // sesión nueva, o el comportamiento original (vía _legacyKickoffState)
+  // para cualquier otro caso — exactamente el mismo camino que ya usa
+  // "Iniciar de nuevo", sin duplicar lógica.
+  // Misma razón que window.__CIRCULO_HIDRATACION_INICIAL arriba: se expone
+  // la promesa únicamente para que un test pueda esperar a que esta ÚNICA
+  // invocación diferida termine, sin disparar una segunda.
+  if (typeof window.__CIRCULO_KICKOFF_DIFERIDO === 'function') {
+    window.__CIRCULO_KICKOFF_INICIAL = window.kickoffState();
+  }
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,263 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 Master Roadmap\
+\
+Versi\'f3n: 3.2\
+\
+Estado: Vivo\
+\
+\'daltima actualizaci\'f3n: 2026-08-03\
+\
+---\
+\
+# Objetivo\
+\
+Este documento define el roadmap oficial del desarrollo del Motor Cognitivo.\
+\
+No contiene el estado de la conversaci\'f3n.\
+\
+No contiene la tarea actual.\
+\
+No contiene checkpoints detallados de git.\
+\
+La ejecuci\'f3n activa siempre se consulta en **NEXT_TASK.md**. El estado del repositorio se consulta en **CURRENT_STATE.md**.\
+\
+---\
+\
+# Estado global\
+\
+Proyecto:\
+\
+C\'edrculo\
+\
+Estado general:\
+\
+Fases 1\'966 completadas. Etapa 1 ("due\'f1o \'fanico de estado") completada y cerrada. Etapa 2 ("Grafo de Conocimiento vivo") completada y cerrada. Etapa 3 ("Ciclo Cognitivo de Descubrimiento") completada, aprobada y cerrada. Sin etapa NUEVA abierta con la ceremonia formal de Incrementos \'97 pero s\'ed hubo trabajo real sustancial despu\'e9s de Etapa 3 (`circulomejora006`, 71 commits), sin ese proceso de apertura/cierre. Ver "Trabajo posterior a Etapa 3", m\'e1s abajo, y CURRENT_STATE.md para el detalle completo.\
+\
+---\
+\
+# Roadmap oficial \'97 Fases\
+\
+| Fase | Nombre | Estado |\
+|------|---------|--------|\
+| 1 | Fundaciones | [COMPLETADA] |\
+| 2 | Policies + Orquestador | [COMPLETADA] |\
+| 3 | Migraci\'f3n Modelo Agora | [COMPLETADA] |\
+| 4 | Inteligencias Cognitivas | [COMPLETADA] |\
+| 5 | Integraci\'f3n del Motor | [COMPLETADA] |\
+| 6 | Integraci\'f3n final y transici\'f3n del frontend | [COMPLETADA T\'c9CNICAMENTE] |\
+\
+---\
+\
+# Objetivo de cada fase\
+\
+## Fase 1\
+\
+Crear la infraestructura base del Motor Cognitivo: estado tipado, persistencia, eventos, contratos, DTOs.\
+\
+## Fase 2\
+\
+Separar reglas del negocio mediante Policies y crear el Orquestador: GatePolicy, AuthorityPolicy, BudgetPolicy, HITLPolicy, PromotionPolicy, OrchestratorService, LLMService.\
+\
+## Fase 3\
+\
+Migrar completamente el Modelo Agora: Estados Agora, TransformationIntelligence, Executors, Blueprint, Bonus, Desarrollo, PromotionPolicy integrada.\
+\
+## Fase 4\
+\
+Incorporar las Inteligencias Cognitivas: ComprensionIntelligence, PotenciacionIntelligence, ContextualIntelligence.\
+\
+## Fase 5\
+\
+Conectar toda la arquitectura: PipelineApplicationService, API Cognitiva, cliente del frontend, integraci\'f3n completa del pipeline.\
+\
+## Fase 6\
+\
+Completar la transici\'f3n hacia la nueva arquitectura: frontend conectado mediante el bridge, flujo principal sin bypasses directos a Anthropic, suite local completa en verde y portable, repositorio local portable y sincronizado.\
+\
+---\
+\
+# Etapa: Entrega local y validaci\'f3n de producto\
+\
+No fue una nueva Fase de funcionalidades \'97 fue la continuidad operativa para pasar de "Motor Cognitivo cerrado t\'e9cnicamente" a "sistema ejecutable y validado localmente".\
+\
+Estado: Cerrada.\
+\
+Goals completados: bootstrap local del servidor; correcci\'f3n del flujo conversacional inicial (`POST /grammar-turn`, adaptaci\'f3n del bridge, transporte del texto real del usuario, fixtures conversacionales del modo mock); auditor\'eda de cierre de la validaci\'f3n arquitect\'f3nica.\
+\
+---\
+\
+# Etapa 1 \'97 "Due\'f1o \'fanico de estado"\
+\
+Estado: **Completada y aprobada. Cerrada.**\
+\
+Objetivo: hacer que el backend sea el \'fanico due\'f1o del estado cognitivo, eliminando toda duplicidad de autoridad entre frontend, backend y caminos legacy.\
+\
+Cierre acotado expl\'edcitamente a autoridad cognitiva y persistencia \'97 no resuelve por s\'ed solo otras deudas registradas (ver **CURRENT_STATE.md**, secci\'f3n "Deudas y bloqueos reales").\
+\
+## Incrementos\
+\
+| Incremento | Resultado | Estado |\
+|---|---|---|\
+| 1 | `CognitiveUnitOfWork` + `Turno` (schema/repo) | [COMPLETADA] |\
+| 2 | Campos de ciclo de vida en `CognitiveState`/`Event` (`gramaticaActiva`, `pipelineStatus`, `turnoId`, etc.) | [COMPLETADA] |\
+| 3 | `InteraccionCognitivaWriter` \'97 escritor at\'f3mico/idempotente/serializado de una interacci\'f3n | [COMPLETADA] |\
+| 4 | `POST /grammar-turn` migrado a `InteraccionCognitivaWriter`; `GatePolicy` corregido a exigir slots completos Y confirmaci\'f3n del LLM | [COMPLETADA] |\
+| 5 | `GET /session/:id` y `GET /session/:id/turnos` \'97 lectura pura de memoria durable | [COMPLETADA] |\
+| 6 | `SessionHydrator` \'97 reconstrucci\'f3n read-only de una sesi\'f3n completa | [COMPLETADA] |\
+| 7 | Retiro de autoridad cognitiva del bridge (hidrataci\'f3n al cargar, `currentStateIdx` como proyecci\'f3n pura, outbox durable + dispatcher para downstream) | [COMPLETADA \'97 con una correcci\'f3n aprobada tras el primer cierre] |\
+| 8 | Retiro final de duplicidades de autoridad (`gramaticaExecutor`, `updateSlot`/`mergeSlots`, `preloadSlots`/`startFrom:'agora'`, `etapa`/`understood` del bridge) | [COMPLETADA \'97 con una correcci\'f3n aprobada tras el primer cierre] |\
+\
+## Nota sobre las dos correcciones\
+\
+El Incremento 7 fue rechazado en su primer cierre por 3 problemas arquitect\'f3nicos reales (solicitud durable no garantizada, ejecuci\'f3n \'fanica no demostrada entre procesos, dos sem\'e1nticas bajo el mismo tipo de evento) \'97 corregidos antes de la aprobaci\'f3n.\
+\
+El Incremento 8 fue rechazado en su primer cierre porque, aunque las duplicidades de s\'edntesis se hab\'edan resuelto, sobreviv\'edan dos duplicidades de autoridad de *escritura*: el bridge segu\'eda enviando `etapa`/`understood` (aunque el servidor los ignorara) y `PipelineApplicationService.preloadSlots()` segu\'eda existiendo como una segunda puerta capaz de escribir slots can\'f3nicos v\'eda `POST /pipeline \\\{startFrom:'agora'\\\}`. Corregido eliminando ambos caminos por completo, tras confirmar que no ten\'edan consumidor de producci\'f3n real.\
+\
+---\
+\
+# Protocolo V2 de cierre conversacional (previo a Etapa 2)\
+\
+Antes de la Etapa 2, y por fuera de la numeraci\'f3n de Incrementos de Etapa 1, se construy\'f3 `ProgresoConversacionalPolicy` como autoridad de cierre alternativa a `GatePolicy`, gobernada por el flag `CIRCULO_PROGRESS_PROTOCOL_V2`: estados EXPLORANDO/LISTO_PARA_SINTESIS/ESPERANDO_CONFIRMACION, s\'edntesis versionada (`protocoloSintesisVigente`), clasificaci\'f3n confirma/corrige/rechaza/ambiguo, y eliminaci\'f3n del turno de reacci\'f3n redundante en transiciones internas (mensaje de confirmaci\'f3n no visible; `kickoffState()` produce el \'fanico mensaje visible de la gram\'e1tica siguiente). Cerrado y validado con E2E real antes de abrir la Etapa 2. `GatePolicy.evaluateGramatica` nunca se invoca bajo este modo.\
+\
+---\
+\
+# Etapa 2 \'97 "Grafo de Conocimiento vivo"\
+\
+Estado: **Completada y aprobada. Cerrada.**\
+\
+Objetivo: resolver que C\'edrculo pod\'eda capturar informaci\'f3n correcta y aun as\'ed conversar mal (preguntas infinitas, sin sensaci\'f3n de avance, reapertura de temas resueltos, inferencias tratadas como confirmadas) \'97 sustituyendo la cobertura de slots como criterio de suficiencia por comprensi\'f3n evolutiva real, representada en un grafo vivo de conceptos e incertidumbres.\
+\
+Gobernada por el flag `CIRCULO_KNOWLEDGE_GRAPH_ENABLED`, siempre junto a `CIRCULO_PROGRESS_PROTOCOL_V2=true` \'97 la combinaci\'f3n inversa es rechazada expl\'edcitamente en bootstrap.\
+\
+## Incrementos\
+\
+| Incremento | Resultado | Estado |\
+|---|---|---|\
+| 1 | Grafo de Conocimiento vivo como objeto central de EXPLORANDO: `GrafoConocimientoPolicy.aplicarDelta`, `GrafoProyeccion` (suficiencia sem\'e1ntica, dimensiones pendientes, proyecci\'f3n de slots), materialidad estructural, separaci\'f3n de reconciliaci\'f3n hist\'f3rica y comprensi\'f3n constructiva en dos fases con transacciones propias, `avanzaReal` diagn\'f3stico | [COMPLETADA] |\
+| 2 | S\'edntesis de la gram\'e1tica activa y contexto entre gram\'e1ticas derivados exclusivamente del grafo \'97 retiro de `priorContext`/`state.slots` del camino del grafo (no del c\'f3digo: legacy y V2 sin grafo lo siguen usando sin cambios) | [COMPLETADA] |\
+\
+## Correcciones post-E2E (mismo cierre de Etapa 2)\
+\
+Tres hallazgos de E2E real corregidos antes del cierre, cada uno con su propia decisi\'f3n registrada en **DECISIONS.md**:\
+\
+- Resoluci\'f3n de incertidumbre por concepto, no por id opaco de la incertidumbre (D-032) \'97 el LLM manejaba el id de concepto sin error mientras fallaba sistem\'e1ticamente al transcribir el id de incertidumbre.\
+- Edici\'f3n dirigida de s\'edntesis en vez de regeneraci\'f3n completa (D-033) \'97 una gram\'e1tica necesit\'f3 40 rondas de correcci\'f3n en un E2E real porque cada ajuste, sin importar su tama\'f1o, reescrib\'eda el p\'e1rrafo entero.\
+- Bienvenida inicial est\'e1tica, fuera del motor cognitivo (D-034) \'97 el kickoff de Destino generaba un Turno real con un mensaje sint\'e9tico antes del primer input genuino del usuario.\
+\
+## Deuda identificada y resuelta dentro de la misma Etapa\
+\
+Un E2E de Incremento 1 revel\'f3 que `LISTO_PARA_SINTESIS` segu\'eda derivando de `priorContext` en vez del grafo \'97 documentado expl\'edcitamente como deuda arquitect\'f3nica preexistente (no una regresi\'f3n de Incremento 1) y resuelto en el Incremento 2, con el alcance ampliado a las 5 gram\'e1ticas tras confirmar que `priorContext` no representaba ninguna capacidad que el grafo no cubriera ya.\
+\
+## Trabajo diferido, expl\'edcitamente fuera de alcance\
+\
+Circuito de resiliencia/observabilidad entre turnos (detectar que la misma incertidumbre material sigue abierta tras varios turnos reales con contenido sustantivo relacionado) \'97 clasificado como resiliencia/observabilidad, no como capacidad cognitiva pendiente. No bloquea el cierre de Etapa 2. Sin autorizaci\'f3n para implementarse.\
+\
+---\
+\
+# Etapa 3 \'97 "Ciclo Cognitivo de Descubrimiento"\
+\
+Estado: **Completada y aprobada. Cerrada.**\
+\
+Objetivo: cerrar **ADR-Ciclo-Cognitivo-Descubrimiento.md** \'97 C\'edrculo pod\'eda interpretar antes de comprender, abstraer antes de validar, y elevar antes de descubrir, sin ning\'fan mecanismo que lo devolviera al lenguaje del experto ni siquiera ante un rechazo expl\'edcito y repetido. La Etapa reemplaza esa tuber\'eda de un solo sentido por un \'fanico ciclo epistemol\'f3gico \'97 evidencia \uc0\u8594  hip\'f3tesis (`inferido`) \uc0\u8594  reconocimiento/rechazo \uc0\u8594  conocimiento compartido (`experto`) \'97 aplicado de forma uniforme a conceptos individuales, a la s\'edntesis completa de una gram\'e1tica, y a la reacci\'f3n visible ante un rechazo. Validada con E2E real contra Gemini en cada Incremento.\
+\
+## Incrementos\
+\
+| Incremento | Resultado | Estado |\
+|---|---|---|\
+| 1 | Elegibilidad y Reconocimiento del ADR: `GrafoProyeccion.elegibleParaAbstraer`/`umbralElegibilidad`/`calcularNivelLenguaje`; gate de elegibilidad en el bucle de construcci\'f3n; nivel de lenguaje permitido hacia el Realizador | [COMPLETADA] |\
+| 2 | Cierre de dos brechas transversales: autoridad downstream ciega a `inferido` (`proyectarSlotsReconocidos`) y cascada de rechazo de s\'edntesis completa (`inferenciasRechazadas` reutilizado); continuidad cognitiva entre gram\'e1ticas (contexto cruzado, particionado confirmado/hip\'f3tesis pendiente) | [COMPLETADA] |\
+| 3 | Distinci\'f3n sem\'e1ntica `rechaza` vs. `corrige`: prueba real (n\'facleo negado vs. detalle conservado) en vez de vocabulario prohibido; `ESPERANDO_CONFIRMACION` puede capturar evidencia nueva en el mismo turno de un rechazo | [COMPLETADA] |\
+| 4 | Gobernanza de autoridad `experto`: deja de ser autodeclarable por el generador \'97 `descripcion` misma (nunca un campo aparte como `citaTextual`) debe ser extractiva del mensaje real del turno; degradaci\'f3n silenciosa a `inferido` sin bloquear el turno | [COMPLETADA \'97 con una correcci\'f3n aprobada tras el primer cierre] |\
+| 5 | Ciclo de vida de `sintesis_interpretativa`: la s\'edntesis de una gram\'e1tica deja de ser un canal paralelo de inferencia sin gobernanza y pasa a ser un concepto m\'e1s del grafo (`autoridad:'inferido'` al nacer, `procedencia:'sintesis:<gramatica>'`), sujeto al mismo reconocimiento/rechazo que cualquier otro; solo la versi\'f3n confirmada cruza como contexto a la gram\'e1tica siguiente | [COMPLETADA] |\
+| 6 | Memoria negativa de rechazo: `porQueRechazado` guarda la aclaraci\'f3n real del experto (no un texto gen\'e9rico); `sintesisRechazadasDeGramatica` reinyecta, acumulada y local a la gram\'e1tica activa, cada interpretaci\'f3n ya rechazada \'97 con su raz\'f3n \'97 en la regeneraci\'f3n siguiente | [COMPLETADA] |\
+| 7 | Continuidad monot\'f3nica de versiones: la versi\'f3n de una s\'edntesis deja de derivarse de `protocoloSintesisVigente.version` (que un rechazo limpia a prop\'f3sito) y pasa a derivarse del log append-only de eventos `sintesis.propuesta` por sesi\'f3n y gram\'e1tica | [COMPLETADA] |\
+| 8 | Restauraci\'f3n de D-037 (el Realizador Conversacional vuelve a ser exclusivo de EXPLORANDO+grafo, gate expl\'edcito por `protocoloEstado`) y reacci\'f3n controlada, no generativa, ante un rechazo total (`reaccionRechazoControlada`) \'97 el `mensaje` libre del generador nunca llega al usuario cuando `clasificacion_respuesta==='rechaza'` | [COMPLETADA] |\
+\
+## Correcci\'f3n durante la propia Etapa\
+\
+El Incremento 4 (gobernanza de autoridad) se cerr\'f3 primero exigiendo un campo `citaTextual` separado, verificado contra el mensaje real \'97 insuficiente: un generador pod\'eda citar un fragmento genuino y redactar, en `descripcion`, una elevaci\'f3n completa que esa cita nunca respaldaba. Corregido eliminando el campo intermedio: se verifica la propia `descripcion` (o `descripcionRevisada`) como el \'fanico contenido que realmente queda en el grafo, nunca un campo aparte que pueda divergir de lo guardado.\
+\
+## Validaci\'f3n\
+\
+Cada Incremento se valid\'f3 con al menos una corrida E2E real contra Gemini, adem\'e1s de la suite local \'97 incluyendo el caso adversarial expl\'edcito `\\\{"descripcion":"Dise\'f1ar un sistema de predicciones para evitar fricciones","autoridad":"experto"\\\}` sobre un mensaje real que nunca lo respalda (Incremento 4), y la secuencia completa `v1 rechazada \uc0\u8594  v2 regenerada \uc0\u8594  v3 corregida \uc0\u8594  confirmaci\'f3n`, con cruce exclusivo hacia la gram\'e1tica siguiente y secuencias de versi\'f3n independientes por gram\'e1tica (Incrementos 5-8).\
+\
+## Trabajo diferido, expl\'edcitamente fuera de alcance\
+\
+El comentario exploratorio de Capa 1 en `EXPLORANDO` (lo que llega al Realizador como `observacion`) sigue siendo prosa libre \'97 puede usar ocasionalmente vocabulario elevado ("el sistema...") sin que eso se confirme, promueva ni cruce nunca. Registrado como observaci\'f3n de calidad exploratoria, no como bloqueo ni regresi\'f3n de esta Etapa. Sin autorizaci\'f3n para tratarse con la misma disciplina aplicada a la s\'edntesis.\
+\
+---\
+\
+# Trabajo posterior a Etapa 3 \'97 `circulomejora006` (sin cierre formal de etapa)\
+\
+Este documento estuvo desactualizado entre el cierre de Etapa 3 (2026-07-22) y esta revisi\'f3n (2026-08-01). En ese intervalo, 71 commits bajo el identificador `circulomejora006` (m\'e1s 16 de continuidad directa de Etapa 3) construyeron: selecci\'f3n de movimiento conversacional para DESTINO (Motor de Movimientos Conversacionales), el Ciclo Cognitivo de Descubrimiento aplicado a interpretaciones materializadas, el ciclo Hip\'f3tesis\uc0\u8594 Afirmaci\'f3n Transformacional (con validaci\'f3n de relaci\'f3n transformacional productiva), Presentaci\'f3n estructurada, los cuatro evaluadores de Base Defendible, la certificaci\'f3n legal de Movimiento, y D1 en dos formas (m\'ednima, comprometida; D1.7-A, aislada).\
+\
+Este trabajo no sigui\'f3 la ceremonia de Fases/Etapas/Incrementos numerados que gobierna el resto de este documento \'97 se ejecut\'f3 bajo reportes numerados propios (`circulomejora006_act07` a `act10l`, luego `reporte01` a `reporte20`), cada uno con su propio commit y, en las \'faltimas cuatro (reportes 17-20, sesi\'f3n 2026-08-01), su propio razonamiento completo documentado en el mensaje de commit.\
+\
+Tras `reporte20` (2026-08-01), el trabajo continu\'f3 bajo el mismo identificador: integraci\'f3n real de S1-R (reparaci\'f3n transformacional) contra Writer/SQLite, y cierre administrativo del contrato transformacional T1-T10 con su ejecutor determinista (9 de 10 trayectorias ejecutadas de punta a punta contra Writer/SQLite reales, T8 con cobertura por otra v\'eda) en `27dd14a`. Detalle completo en CURRENT_STATE.md.\
+\
+El detalle verificable \'97 qu\'e9 est\'e1 conectado a producci\'f3n, qu\'e9 permanece aislado, y los riesgos registrados sin autorizar \'97 vive en **CURRENT_STATE.md**, secci\'f3n "Evoluci\'f3n posterior a Etapa 3", para no duplicar aqu\'ed una segunda fuente que pueda divergir. Este documento solo registra que el trabajo existi\'f3 y d\'f3nde consultarlo.\
+\
+No se abre aqu\'ed una "Etapa 4" formal \'97 esa es, en s\'ed misma, una decisi\'f3n de proceso pendiente, no asumida por esta revisi\'f3n.\
+\
+---\
+\
+# Etapa siguiente (pendiente de decisi\'f3n)\
+\
+Ninguna etapa NUEVA definida como siguiente en este momento \'97 m\'e1s all\'e1 del trabajo real ya ejecutado bajo `circulomejora006` (ver secci\'f3n anterior), que no fue formalmente abierto ni cerrado como Etapa. Antes de Etapa 1 se hab\'eda definido "Validaci\'f3n Conversacional con Anthropic real" \'97 Etapa 1, Etapa 2 y Etapa 3 se ejecutaron en su lugar. Si esa etapa (u otra) sigue siendo la siguiente, es una decisi\'f3n pendiente de autorizaci\'f3n expl\'edcita \'97 no se asume autom\'e1ticamente en este documento.\
+\
+Ning\'fan Goal de una futura etapa de validaci\'f3n conversacional implicar\'eda volver a invertir en el modo mock: ese modo permanece congelado como herramienta de regresi\'f3n.\
+\
+El Goal 0 hist\'f3rico de esa etapa (confirmar un commit pendiente y crear el tag `v0.7.0`) ya se complet\'f3 \'97 el tag existe, sobre el commit `5264c5c`. Ese commit y el tag son anteriores a Etapa 1, Etapa 2 y Etapa 3; no cubren ese trabajo.\
+\
+---\
+\
+# Criterio de avance\
+\
+Una fase o etapa solo puede marcarse como completada cuando:\
+\
+- Todos sus Goals/Incrementos est\'e9n terminados.\
+- Los tests correspondientes est\'e9n en verde.\
+- Exista un checkpoint oficial (cuando corresponda commitear).\
+- No existan bloqueos abiertos que impidan avanzar.\
+\
+---\
+\
+# Regla de ejecuci\'f3n\
+\
+Las fases y etapas no se implementan de una sola vez.\
+\
+Cada una se divide en Goals o Incrementos, autorizados expl\'edcitamente uno por uno.\
+\
+La unidad oficial de trabajo, y el flujo completo de cierre, se documentan en **PROJECT_WORKFLOW.md**.\
+\
+---\
+\
+# Regla de estabilidad\
+\
+Una fase o etapa cerrada no debe reabrirse salvo evidencia objetiva de bug, regresi\'f3n, incompatibilidad o deuda t\'e9cnica cr\'edtica.\
+\
+No por mejoras est\'e9ticas. No por inferencia.\
+\
+---\
+\
+# Referencias\
+\
+Estado actual del proyecto: \uc0\u8594  **CURRENT_STATE.md**\
+\
+Trabajo autorizado: \uc0\u8594  **NEXT_TASK.md**\
+\
+Mapa de componentes: \uc0\u8594  **SYSTEM_MAP.md**\
+\
+Arquitectura profunda: \uc0\u8594  **ARCHITECTURE.md**\
+\
+Decisiones: \uc0\u8594  **DECISIONS.md**\
+\
+Flujo oficial de trabajo: \uc0\u8594  **PROJECT_WORKFLOW.md**\
+\
+Auditor\'eda hist\'f3rica (Fases 1\'965): \uc0\u8594  **IMPLEMENTATION_AUDIT_PHASES_1_5.md**\
+}

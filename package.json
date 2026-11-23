@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "start:server": "node packages/cognitive-engine/bin/start-server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1"
+  },
+  "allowScripts": {
+    "file:../better-sqlite3": true,
+    "better-sqlite3@12.11.1": true
+  }
+}

@@ -1,0 +1,208 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 System Map\
+\
+Versi\'f3n: 3.0\
+\
+Estado: Vivo\
+\
+\'daltima actualizaci\'f3n: 2026-07-20\
+\
+---\
+\
+# Prop\'f3sito\
+\
+Este documento responde una \'fanica pregunta:\
+\
+> \'bfQu\'e9 es C\'edrculo y c\'f3mo est\'e1 construido, a alto nivel?\
+\
+Debe poder leerse en pocos minutos por una persona o una IA que llega por primera vez.\
+\
+No documenta contratos, invariantes ni autoridades en profundidad \'97 eso pertenece a **ARCHITECTURE.md**.\
+\
+No documenta decisiones hist\'f3ricas \'97 eso pertenece a **DECISIONS.md**.\
+\
+No contiene roadmap ni estado del repositorio \'97 eso pertenece a **MASTER_ROADMAP.md** y **CURRENT_STATE.md**.\
+\
+---\
+\
+# Visi\'f3n General\
+\
+C\'edrculo es un motor cognitivo que transforma el conocimiento de un experto en un producto digital estructurado.\
+\
+No es un generador de contenido.\
+\
+No es un chatbot.\
+\
+No es un constructor de cursos.\
+\
+Su funci\'f3n es ejecutar una metodolog\'eda instruccional de forma consistente, replicando el criterio de una dise\'f1adora instruccional experta.\
+\
+**Desde la Etapa 2, la comprensi\'f3n conversacional deja de representarse como 16 campos de texto plano.** Bajo el flag `CIRCULO_KNOWLEDGE_GRAPH_ENABLED`, C\'edrculo mantiene un grafo vivo de conceptos, cada uno con procedencia y autoridad (dicho por el experto vs. interpretado por C\'edrculo), y de incertidumbres \'97 para saber no solo qu\'e9 sabe, sino qu\'e9 tan seguro est\'e1 de saberlo. Profundidad completa: **ARCHITECTURE.md**.\
+\
+---\
+\
+# Los dos flujos del sistema\
+\
+C\'edrculo tiene dos flujos principales, con componentes distintos.\
+\
+## 1. Flujo conversacional (Modelo Agora \'97 un turno por vez)\
+\
+Experto\
+\
+\uc0\u8595 \
+\
+Bridge (frontend)\
+\
+\uc0\u8595 \
+\
+API \'97 POST /grammar-turn\
+\
+\uc0\u8595 \
+\
+InteraccionCognitivaWriter\
+\
+\uc0\u8595 \
+\
+(bajo el grafo activo: reconciliaci\'f3n hist\'f3rica + comprensi\'f3n constructiva, en dos transacciones \'97 ver ARCHITECTURE.md)\
+\
+(sin el grafo activo: SlotSynthesisPolicy + GatePolicy o ProgresoConversacionalPolicy)\
+\
+\uc0\u8595 \
+\
+CognitiveState + Turno (persistidos)\
+\
+Este flujo se repite una vez por cada turno de cada una de las 5 gram\'e1ticas (Destino, Destilar, Traducir, Ascenso, Dar Vida).\
+\
+## 2. Flujo downstream (una sola vez, al cerrar las 5 gram\'e1ticas)\
+\
+Cierre de Dar Vida\
+\
+\uc0\u8595 \
+\
+Outbox durable (solicitud)\
+\
+\uc0\u8595 \
+\
+PipelineDownstreamDispatcher\
+\
+\uc0\u8595 \
+\
+PipelineApplicationService \uc0\u8594  Orchestrator \u8594  AgoraStages\
+\
+\uc0\u8595 \
+\
+Inferencia \uc0\u8594  Opciones \u8594  Arquitectura \u8594  Evidencia \u8594  Forma \u8594  Desarrollo \u8594  Bonus \u8594  Blueprint\
+\
+\uc0\u8595 \
+\
+Producto Digital + Blueprint Estrat\'e9gico\
+\
+El bridge nunca solicita este flujo \'97 solo lo espera y lo muestra. Sin cambios en Etapa 2.\
+\
+---\
+\
+# Componentes principales\
+\
+## Frontend\
+\
+`circulo_v0.html` (baseline inmutable) + `circulo_v0_bridge.html` (artefacto generado). Captura la entrada del usuario, env\'eda una interacci\'f3n identificable, muestra la respuesta, proyecta el estado recibido, restaura la conversaci\'f3n tras un refresh. No toma decisiones cognitivas. Desde Etapa 2, muestra adem\'e1s un saludo inicial fijo (sin llamar al motor) al abrir una sesi\'f3n nueva.\
+\
+## API (CognitivoApiServer)\
+\
+Expone el Motor Cognitivo por HTTP. No contiene l\'f3gica cognitiva \'97 solo traduce entre HTTP y los componentes internos.\
+\
+## InteraccionCognitivaWriter\
+\
+El \'fanico escritor de un turno de gram\'e1tica. Bajo el grafo activo, coordina dos fases cognitivas por turno (reconciliaci\'f3n hist\'f3rica + comprensi\'f3n constructiva) en vez de una sola generaci\'f3n \'97 ver ARCHITECTURE.md.\
+\
+## Grafo de Conocimiento vivo (Etapa 2)\
+\
+`state.knowledgeGraph`: conceptos, relaciones e incertidumbres, con procedencia y autoridad. Objeto central de la comprensi\'f3n conversacional bajo el flag \'97 los slots pasan a ser una proyecci\'f3n derivada de \'e9l, no un dato escrito directamente.\
+\
+## SlotSynthesisPolicy\
+\
+Decide el valor final de cada slot cuando llegan aportes nuevos \'97 bajo legacy o V2 sin grafo. Bajo el grafo activo, esta responsabilidad la cumple una proyecci\'f3n pura del grafo.\
+\
+## GatePolicy / ProgresoConversacionalPolicy\
+\
+Deciden si una gram\'e1tica est\'e1 cerrada \'97 `GatePolicy` bajo legacy, `ProgresoConversacionalPolicy` bajo V2 (con o sin grafo). Nunca ambas en el mismo turno.\
+\
+## CognitiveState / CognitiveStateService\
+\
+El objeto donde vive toda la informaci\'f3n del proceso. Se carga, versiona y persiste \'97 nunca decide contenido por su cuenta.\
+\
+## Turno\
+\
+Historia conversacional persistida. Un Turno por cada interacci\'f3n confirmada.\
+\
+## SessionHydrator\
+\
+Reconstruye una sesi\'f3n completa (estado + transcript) exclusivamente para lectura.\
+\
+## Outbox durable + PipelineDownstreamDispatcher\
+\
+Solicitan y ejecutan el downstream exactamente una vez por conversaci\'f3n, de forma recuperable ante ca\'eddas.\
+\
+## PipelineApplicationService / Orchestrator / AgoraStages\
+\
+Ejecutan las etapas downstream (Inferencia a Blueprint) sobre los slots ya cerrados. No participan en las 5 gram\'e1ticas conversacionales.\
+\
+## Inteligencias (Comprensi\'f3n, Potenciaci\'f3n, Contextual, Transformation)\
+\
+Preparan y transforman el conocimiento dentro del flujo downstream. `ComprensionIntelligence` escribe en un campo separado (`state.knowledgeGraphReconstruido`) que nunca colisiona con el grafo vivo conversacional.\
+\
+## LLMService\
+\
+\'danico componente autorizado para comunicarse con un modelo de lenguaje.\
+\
+## Persistencia\
+\
+SQLite. Almacena estado, versiones, Turnos, eventos y la cola durable del outbox.\
+\
+## Eventos\
+\
+Todo cambio importante genera un evento, con tres familias separadas: la del ciclo de vida del turno/downstream, la del pipeline pre-Agora heredado, y (desde Etapa 2) la de las dos fases del grafo vivo.\
+\
+---\
+\
+# Principios Fundamentales\
+\
+Ley de Invisibilidad\
+\
+Ley de Inferencia\
+\
+Ley de Evidencia\
+\
+Ley del Due\'f1o de la Decisi\'f3n\
+\
+Ley del Contrato entre Etapas\
+\
+Estos principios gobiernan todo el sistema. No pueden violarse sin una decisi\'f3n arquitect\'f3nica expl\'edcita.\
+\
+---\
+\
+# Resultado Final\
+\
+Todo el sistema existe para producir \'fanicamente dos activos.\
+\
+1. Producto Digital \'97 activo comercial que recibe el creador.\
+\
+2. Blueprint Estrat\'e9gico \'97 activo privado reutilizable por el creador para marketing, ventas y futuros productos.\
+\
+Todo componente del sistema debe contribuir directa o indirectamente a estos dos resultados.\
+\
+---\
+\
+# Para profundizar\
+\
+Autoridades, contratos, invariantes y flujo interno detallado: **ARCHITECTURE.md**.\
+\
+Decisiones tomadas y su justificaci\'f3n: **DECISIONS.md**.\
+\
+Estado actual del proyecto: **CURRENT_STATE.md**.\
+}

@@ -1,0 +1,99 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 NEXT TASK\
+\
+Versi\'f3n: 6.0\
+\
+Estado: Decisi\'f3n de producto requerida\
+\
+\'daltima actualizaci\'f3n: 2026-08-01\
+\
+---\
+\
+# Objetivo\
+\
+Este documento define la \'fanica tarea autorizada para la siguiente sesi\'f3n de desarrollo.\
+\
+Todo trabajo nuevo debe comenzar aqu\'ed.\
+\
+Cuando exista una tarea autorizada, este documento se reemplaza por ella.\
+\
+---\
+\
+# Estado actual: gobernanza restaurada, sin incremento productivo autorizado\
+\
+Este documento estuvo congelado desde 2026-07-20, antes de que 87 commits reales (16 de continuidad de Etapa 3, 71 bajo `circulomejora006`) construyeran el Motor de Movimientos Conversacionales, el Ciclo Hip\'f3tesis\uc0\u8594 Afirmaci\'f3n, Base Defendible, la Presentaci\'f3n estructurada, y D1 en dos formas (m\'ednima, comprometida; D1.7-A, aislada). Ver **CURRENT_STATE.md**, secci\'f3n "Evoluci\'f3n posterior a Etapa 3", para el detalle completo y verificable.\
+\
+Esa desalineaci\'f3n entre la fuente can\'f3nica y el estado real del repositorio ya caus\'f3 decisiones contradictorias entre herramientas distintas \'97 es la raz\'f3n de esta actualizaci\'f3n de gobernanza.\
+\
+**No hay ning\'fan incremento productivo autorizado en este momento.** La duplicaci\'f3n sem\'e1ntica de suficiencia entre `decidirProtocolo` y `determinarEstadoProtocolarEfectivo` (reporte 20, commit `0b0abe2`) fue el \'faltimo incremento cerrado. Todo lo que sigue requiere una decisi\'f3n expl\'edcita del usuario.\
+\
+---\
+\
+# La decisi\'f3n pendiente\
+\
+**\'bfQu\'e9 capacidad observable del producto queremos mejorar ahora?**\
+\
+No es una pregunta de arquitectura ni de qu\'e9 archivo tocar \'97 es una decisi\'f3n sobre qu\'e9 le importa al producto C\'edrculo en este momento. Las opciones que siguen nacen de los riesgos ya registrados en **CURRENT_STATE.md** ("Riesgos abiertos no autorizados") y de las capacidades ya construidas pero aisladas \'97 ninguna est\'e1 preseleccionada ni recomendada por defecto.\
+\
+**A. Integridad del cierre de DESTINO** \'97 decidir cu\'e1l criterio debe gobernar "listo para sintetizar" (la suficiencia por cobertura sem\'e1ntica, ya productiva, o la defendibilidad + deuda material de Base Defendible, hoy aislada) y c\'f3mo convive con el protocolo actual. Toca el riesgo registrado #4.\
+\
+**B. Fidelidad de presentaci\'f3n** \'97 garantizar que el texto que el experto confirma en `ESPERANDO_CONFIRMACION` sea exactamente el contenido autorizado (`protocoloSintesisVigente`/Presentaci\'f3n estructurada), no una par\'e1frasis libre del LLM. Toca el riesgo registrado #5.\
+\
+**C. Fiabilidad de interpretaci\'f3n de respuestas** \'97 reducir el riesgo de que el LLM clasifique incorrectamente confirma/corrige/rechaza, hoy delegado sin verificaci\'f3n independiente. Toca el riesgo registrado #6.\
+\
+**D. Estabilidad t\'e9cnica** \'97 investigar uno de los riesgos t\'e9cnicos registrados (reachability de la rama de obsolescencia relacional; la transacci\'f3n separada del flujo DESTINO; el literal hardcodeado de recuperaci\'f3n) antes de ampliar comportamiento nuevo.\
+\
+**E. Otra prioridad definida por el usuario** \'97 ninguna de las anteriores, o una combinaci\'f3n distinta.\
+\
+**Ninguna opci\'f3n est\'e1 autorizada por este documento.** Elegir una es responsabilidad del usuario, no de esta lectura.\
+\
+---\
+\
+# Qu\'e9 NO hacer sin autorizaci\'f3n expl\'edcita\
+\
+- No abrir una nueva Etapa ni un nuevo Incremento por inferencia.\
+- No implementar ninguno de los riesgos registrados en **CURRENT_STATE.md** ("Riesgos abiertos no autorizados") sin que el usuario elija expl\'edcitamente una opci\'f3n de la secci\'f3n anterior.\
+- No reabrir: identidad causal / obligaciones abiertas, universo multi-candidato de Movimiento, la integraci\'f3n de D1 al Writer, la auditor\'eda de la intervenci\'f3n de Gemini, ni el saneamiento del repositorio \'97 todos ya cerrados en sesiones previas.\
+- No modificar `circulo_v0.html` ni `circulo_e2e.html`.\
+- No investigar ni corregir las fallas preexistentes de `test_nueva_sesion_cognitiva.js` ni `test_sintesis_interpretativa_gobernada.js` sin instrucci\'f3n expl\'edcita.\
+- No ejecutar ninguna llamada real a un proveedor de LLM sin que el usuario haya arrancado el servidor con sus propias credenciales.\
+- No aplicar ni descartar el stash `gemini-d1-multicandidato-unstaged-retirado` sin instrucci\'f3n expl\'edcita.\
+\
+---\
+\
+# Si el usuario da instrucci\'f3n de continuar\
+\
+Antes de empezar a escribir c\'f3digo, responder \'fanicamente:\
+\
+- Estado recibido (le\'eddo de este documento y de **CURRENT_STATE.md**).\
+- Alcance exacto de la tarea, tal como el usuario la defini\'f3 \'97 sin ampliarlo ni interpretarlo.\
+- Archivos necesarios.\
+- Dependencias.\
+- Plan de implementaci\'f3n.\
+\
+Nada m\'e1s. Esperar confirmaci\'f3n antes de modificar c\'f3digo, salvo que el usuario ya haya autorizado proceder directamente.\
+\
+---\
+\
+# Instrucci\'f3n para una nueva conversaci\'f3n\
+\
+Si esta conversaci\'f3n se cierra sin que exista todav\'eda una tarea autorizada:\
+\
+1. Leer:\
+   - **CURRENT_STATE.md**\
+   - **MASTER_ROADMAP.md**\
+   - Este documento (**NEXT_TASK.md**)\
+2. No asumir ninguna tarea por inferencia.\
+3. No revisar fases o etapas anteriores salvo que la tarea nueva lo requiera expl\'edcitamente.\
+4. No recorrer el repositorio completo antes de tener una tarea definida.\
+5. Preguntar al usuario cu\'e1l de las opciones A-E (o cu\'e1l otra) es la prioridad, si no queda claro en la conversaci\'f3n.\
+\
+Prompt recomendado para retomar:\
+\
+"Lee CURRENT_STATE.md, MASTER_ROADMAP.md y NEXT_TASK.md. La gobernanza del proyecto fue restaurada el 2026-08-01; el siguiente incremento depende de qu\'e9 capacidad del producto (opciones A-E en NEXT_TASK.md) quieras mejorar. Espera mi decisi\'f3n antes de proponer o iniciar cualquier trabajo."\
+}

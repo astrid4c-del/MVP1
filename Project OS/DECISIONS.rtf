@@ -1,0 +1,732 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 Architectural Decisions\
+\
+Versi\'f3n: 1.8\
+\
+Estado: Vivo\
+\
+\'daltima actualizaci\'f3n: 2026-07-20\
+\
+---\
+\
+# Objetivo\
+\
+Este documento registra decisiones arquitect\'f3nicas que ya fueron tomadas.\
+\
+Su prop\'f3sito es evitar que vuelvan a discutirse en futuras conversaciones.\
+\
+Toda nueva propuesta debe respetar estas decisiones o justificar expl\'edcitamente por qu\'e9 deben cambiar.\
+\
+---\
+\
+# D-001\
+\
+## C\'edrculo no es un generador de contenido.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+El valor del producto no est\'e1 en escribir contenido.\
+\
+Est\'e1 en ejecutar una metodolog\'eda instruccional.\
+\
+---\
+\
+# D-002\
+\
+## El Motor Cognitivo gobierna todo.\
+\
+Estado:\
+\
+Congelado.\
+\
+Frontend.\
+\
+API.\
+\
+LLM.\
+\
+Persistencia.\
+\
+Todos existen para servir al Motor Cognitivo.\
+\
+Nunca al rev\'e9s.\
+\
+---\
+\
+# D-003\
+\
+## CognitiveState es la \'fanica fuente de verdad.\
+\
+Estado:\
+\
+Congelado.\
+\
+No se permiten estados paralelos.\
+\
+No se permiten copias sincronizadas.\
+\
+Toda modificaci\'f3n termina en CognitiveState.\
+\
+---\
+\
+# D-004\
+\
+## Las Policies nunca generan contenido.\
+\
+Estado:\
+\
+Congelado.\
+\
+Las Policies solamente deciden.\
+\
+Toda generaci\'f3n pertenece a las Inteligencias o al Modelo Agora.\
+\
+---\
+\
+# D-005\
+\
+## El Orchestrator nunca contiene l\'f3gica pedag\'f3gica.\
+\
+Estado:\
+\
+Congelado.\
+\
+El Orchestrator coordina.\
+\
+No interpreta.\
+\
+No ense\'f1a.\
+\
+No decide contenido.\
+\
+---\
+\
+# D-006\
+\
+## Las Inteligencias preparan conocimiento.\
+\
+Estado:\
+\
+Congelado.\
+\
+No producen el Producto Digital.\
+\
+Su responsabilidad termina antes del Modelo Agora.\
+\
+---\
+\
+# D-007\
+\
+## El Modelo Agora transforma.\
+\
+Estado:\
+\
+Congelado.\
+\
+Toda transformaci\'f3n instruccional ocurre aqu\'ed.\
+\
+Nunca dentro del frontend.\
+\
+Nunca dentro de la API.\
+\
+Nunca dentro del Orchestrator.\
+\
+---\
+\
+# D-008\
+\
+## Los contratos gobiernan la comunicaci\'f3n.\
+\
+Estado:\
+\
+Congelado.\
+\
+Las etapas nunca conocen implementaciones.\
+\
+Solo conocen contratos.\
+\
+---\
+\
+# D-009\
+\
+## Todo cambio importante genera un evento.\
+\
+Estado:\
+\
+Congelado.\
+\
+La auditor\'eda forma parte del producto.\
+\
+No es una herramienta de desarrollo.\
+\
+---\
+\
+# D-010\
+\
+## Toda decisi\'f3n tiene un due\'f1o.\
+\
+Estado:\
+\
+Congelado.\
+\
+Aplicaci\'f3n directa de la Ley del Due\'f1o de la Decisi\'f3n.\
+\
+Puede decidir:\
+\
+- IA\
+- Experto\
+- IA propone / Experto confirma\
+\
+Nunca ambos simult\'e1neamente.\
+\
+---\
+\
+# D-011\
+\
+## Nunca preguntar lo que puede inferirse.\
+\
+Estado:\
+\
+Congelado.\
+\
+Aplicaci\'f3n directa de la Ley de Inferencia.\
+\
+Toda nueva conversaci\'f3n debe intentar inferir antes de preguntar.\
+\
+---\
+\
+# D-012\
+\
+## La complejidad debe ser invisible.\
+\
+Estado:\
+\
+Congelado.\
+\
+El usuario nunca ve:\
+\
+- Estados Cognitivos\
+- Policies\
+- Contratos\
+- JSON\
+- Checkpoints\
+- Pipeline\
+\
+Todo debe sentirse como una conversaci\'f3n natural.\
+\
+---\
+\
+# D-013\
+\
+## Los tests son parte de la arquitectura.\
+\
+Estado:\
+\
+Congelado.\
+\
+No son una actividad posterior.\
+\
+Toda nueva funcionalidad nace acompa\'f1ada de pruebas.\
+\
+---\
+\
+# D-014\
+\
+## No duplicar l\'f3gica.\
+\
+Estado:\
+\
+Congelado.\
+\
+Antes de crear un componente nuevo debe verificarse si uno existente puede reutilizarse.\
+\
+---\
+\
+# D-015\
+\
+## El frontend actual es temporal.\
+\
+Estado:\
+\
+Temporal.\
+\
+circulo_v0.html y circulo_e2e.html siguen siendo la referencia funcional.\
+\
+No representan la arquitectura definitiva.\
+\
+---\
+\
+# D-016\
+\
+## Las fases cerradas no se reabren.\
+\
+Estado:\
+\
+Congelado.\
+\
+Una fase solo vuelve a abrirse cuando existe evidencia de un defecto real.\
+\
+Nunca por preferencia.\
+\
+Nunca por redise\'f1o.\
+\
+---\
+\
+# D-017\
+\
+## La evidencia tiene prioridad sobre la intuici\'f3n.\
+\
+Estado:\
+\
+Congelado.\
+\
+Una observaci\'f3n aislada no crea una nueva regla.\
+\
+Toda nueva ley requiere repetici\'f3n y validaci\'f3n.\
+\
+Aplicaci\'f3n directa de la Ley de Evidencia.\
+\
+---\
+\
+# D-018\
+\
+## Claude es el constructor.\
+\
+Estado:\
+\
+Congelado.\
+\
+Claude implementa.\
+\
+No redefine continuamente la visi\'f3n del producto.\
+\
+Las decisiones estrat\'e9gicas pertenecen al proceso de dise\'f1o del proyecto.\
+\
+---\
+\
+# D-019\
+\
+## ChatGPT es el arquitecto estrat\'e9gico.\
+\
+Estado:\
+\
+Operativo.\
+\
+Su funci\'f3n es:\
+\
+- auditar\
+- simplificar\
+- mantener coherencia\
+- proteger la arquitectura\
+- detectar deuda\
+\
+No sustituye al constructor.\
+\
+---\
+\
+# D-020\
+\
+## Todo desarrollo debe reducir incertidumbre.\
+\
+Estado:\
+\
+Congelado.\
+\
+Cada nueva tarea debe acercar el sistema a producci\'f3n.\
+\
+Nunca aumentar complejidad innecesaria.\
+\
+---\
+\
+# D-021 (Etapa 1)\
+\
+## Solo existe una autoridad de escritura por tipo de dato \'97 nunca dos caminos capaces de escribir lo mismo.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Una sola pol\'edtica de s\'edntesis no garantiza una sola autoridad de escritura. Durante el cierre del Incremento 8 se comprob\'f3 que aun usando el mismo algoritmo de s\'edntesis (SlotSynthesisPolicy), una segunda puerta HTTP (`PipelineApplicationService.preloadSlots()` v\'eda `POST /pipeline \{startFrom:'agora', slots\}`) segu\'eda pudiendo ordenar una escritura de slots en paralelo a `/grammar-turn`. El problema no es solo qu\'e9 algoritmo decide el valor \'97 es qui\'e9n puede ordenar la mutaci\'f3n.\
+\
+Aplicaci\'f3n:\
+\
+Para slots: `InteraccionCognitivaWriter` es la \'fanica autoridad de escritura, y `POST /grammar-turn` la \'fanica ruta HTTP capaz de alcanzarla. Cualquier otro componente nuevo que necesite modificar un dato ya gobernado por una autoridad existente debe pasar por esa autoridad \'97 nunca crear un segundo camino, aunque use la misma l\'f3gica interna.\
+\
+---\
+\
+# D-022 (Etapa 1)\
+\
+## La compatibilidad legacy se retira probando un consumidor real, o se elimina directamente si no existe.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+"No acepto mantener una ruta de escritura autoritativa solo porque algunos tests todav\'eda la utilizan." Ignorar un par\'e1metro o una ruta en el servidor no equivale a retirarla del flujo si el cliente real todav\'eda la env\'eda o si la ruta sigue siendo alcanzable.\
+\
+Aplicaci\'f3n:\
+\
+Ante cualquier capacidad legacy candidata a retiro: (a) auditar si existe un consumidor de producci\'f3n real (no solo tests); (b) si no existe, eliminar la capacidad por completo, incluyendo lo que el cliente real env\'eda; (c) si existe, aislarla expl\'edcitamente como frontera legacy documentada, con su propia regla de autorizaci\'f3n/lifecycle y pruebas que demuestren su aislamiento.\
+\
+---\
+\
+# D-023 (Etapa 1)\
+\
+## El cliente nunca transporta autoridad cognitiva \'97 solo una interacci\'f3n identificable e idempotente.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+`etapa`, `understood` y cualquier slot enviado por el cliente nunca decidieron nada en el backend desde el Incremento 4 \'97 pero sobrevivieron en el contrato HTTP y en el bridge real hasta el Incremento 8. El backend es la \'fanica autoridad sobre gram\'e1tica activa, slots y cierre; el cliente no necesita, y no debe, enviar esos datos.\
+\
+Aplicaci\'f3n:\
+\
+El body de `POST /grammar-turn` se limita a `sessionId`, `turnoClienteId` (idempotencia) y `mensajeUsuario`. Ning\'fan endpoint nuevo debe aceptar del cliente un dato que ya tiene una autoridad can\'f3nica en el backend.\
+\
+---\
+\
+# D-024 (Etapa 1)\
+\
+## El downstream garantiza "al menos una vez" sobre el efecto externo \'97 nunca "exactamente una vez".\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+El claim at\'f3mico SQL del outbox impide que dos dispatchers ejecuten el mismo intento simult\'e1neamente, pero no impide que el efecto externo se repita si el proceso cae despu\'e9s de completar el trabajo y antes de persistir `downstream.completed`. Prometer "exactamente una vez" sobre un efecto externo sin que el proveedor downstream ofrezca su propia idempotencia ser\'eda una garant\'eda falsa.\
+\
+Aplicaci\'f3n:\
+\
+Nunca describir el downstream (ni ning\'fan efecto externo futuro) como "exactamente una vez" a menos que el proveedor externo garantice idempotencia real. Describirlo como la combinaci\'f3n de: una solicitud l\'f3gica por conversaci\'f3n, un claim \'fanico por intento, exclusi\'f3n entre ejecutores competidores, recuperaci\'f3n tras abandono, y una clave de correlaci\'f3n \'97 no de deduplicaci\'f3n.\
+\
+---\
+\
+# D-025 (Etapa 1)\
+\
+## Un evento de "completado" del pipeline legacy no implica \'e9xito.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+`pipeline.completed` (emitido por `OrchestratorService.run()`) marca que el loop termin\'f3, incluso si termin\'f3 por un Gate fallido. Confundirlo con \'e9xito llevar\'eda a interpretar una sesi\'f3n fallida como completada.\
+\
+Aplicaci\'f3n:\
+\
+`downstream.completed` es el \'fanico evento que representa \'e9xito del downstream durable. `pipeline.completed` y su familia (`pipeline.started`/`pipeline.failed`) nunca deben leerse como se\'f1al de \'e9xito \'97 solo de terminaci\'f3n del loop pre-Agora heredado.\
+\
+---\
+\
+# D-026 (Etapa 1)\
+\
+## El cierre de una etapa no cierra autom\'e1ticamente toda la deuda registrada dentro de ella.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Al cerrar Etapa 1 se identific\'f3 una deuda (`responderComoGateFallidoLegado`, enmascaramiento HTTP de fallos de LLM) registrada con destino "fin de Etapa 1", que el cierre de Etapa 1 no resolvi\'f3. Declarar una etapa cerrada sin distinguir qu\'e9 deuda qued\'f3 efectivamente resuelta genera la apariencia de que todo qued\'f3 saldado cuando no fue as\'ed.\
+\
+Aplicaci\'f3n:\
+\
+Todo cierre de etapa debe declarar expl\'edcitamente su alcance (p. ej. "cerrado respecto a autoridad cognitiva y persistencia") y listar aparte cualquier deuda que sobreviva sin resolver, aunque estuviera registrada para resolverse en ese mismo cierre.\
+\
+---\
+\
+# D-027 (Etapa 2)\
+\
+## El Grafo de Conocimiento vivo es el objeto cognitivo central del estado conversacional bajo el flag CIRCULO_KNOWLEDGE_GRAPH_ENABLED \'97 los slots dejan de ser la fuente primaria y pasan a ser una proyecci\'f3n.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Cobertura de slots (presencia de texto) no equivale a comprensi\'f3n suficiente. El motor pod\'eda cerrar una gram\'e1tica con contenido correcto pero desconectado, reabrir temas ya resueltos, o tratar una inferencia propia como si el experto la hubiera confirmado. Se redise\'f1\'f3 el estado central alrededor de un grafo de conceptos con procedencia y autoridad (experto/inferido) y de incertidumbres materiales, en vez de un mapa plano de 16 campos de texto.\
+\
+Aplicaci\'f3n:\
+\
+Bajo el flag, el grafo gobierna suficiencia sem\'e1ntica, cierre, s\'edntesis y contexto entre gram\'e1ticas. Bajo legacy o V2 sin grafo, el comportamiento anterior queda intacto \'97 el flag es el \'fanico mecanismo de rollback.\
+\
+---\
+\
+# D-028 (Etapa 2)\
+\
+## Reconciliaci\'f3n hist\'f3rica y comprensi\'f3n constructiva son dos fases cognitivas separadas, con transacciones propias \'97 nunca una sola generaci\'f3n.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Un E2E real demostr\'f3 que pedirle a una sola llamada de LLM crear conocimiento nuevo Y verificar contra el historial produc\'eda un defecto sistem\'e1tico: el modelo fabricaba y cerraba su propio ciclo de incertidumbre dentro del mismo turno, en vez de enganchar genuinamente con una pregunta hist\'f3rica real \'97 incluso en el caso de ambig\'fcedad cero, con un solo concepto y una sola incertidumbre previa. Separar ambas operaciones en fases con permisos de escritura disjuntos elimina la competencia entre tareas de naturaleza distinta (generativa vs. retrospectiva).\
+\
+Aplicaci\'f3n:\
+\
+Reconciliaci\'f3n (fase A) solo puede resolver/desmaterializar incertidumbres existentes y confirmar autoridad de conceptos existentes \'97 nunca crea nada, nunca produce mensaje conversacional. Construcci\'f3n (fase B) crea/corrige/obsoleta conocimiento y nunca cierra una incertidumbre hist\'f3rica. Un fallo en una fase nunca revierte ni bloquea a la otra.\
+\
+---\
+\
+# D-029 (Etapa 2)\
+\
+## La materialidad de una incertidumbre o inferencia es estructural, no un umbral configurable.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Activar la reconciliaci\'f3n ante "cualquier incertidumbre abierta" convertir\'eda al experto en auditor permanente de curiosidades accesorias del sistema. La materialidad se deriva directamente de si resolver ese elemento puede cambiar la suficiencia sem\'e1ntica de la gram\'e1tica activa \'97 una consulta sobre el estado del grafo, no un n\'famero que alguien deba calibrar.\
+\
+Aplicaci\'f3n:\
+\
+`incertidumbresRelevantesAbiertas` + `inferenciasMaterialesActivas` (ambas en `GrafoProyeccion.js`) son la \'fanica puerta de entrada a la reconciliaci\'f3n. Ninguna incertidumbre accesoria (`relevante:false`) ni inferencia sobre una dimensi\'f3n ya satisfecha por autoridad experta puede activarla.\
+\
+---\
+\
+# D-030 (Etapa 2)\
+\
+## `avanzaReal` es un diagn\'f3stico determinista, nunca una autoridad de cierre paralela.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+El problema original que motiv\'f3 el Grafo de Conocimiento (preguntas infinitas, falta de sensaci\'f3n de avance) exig\'eda poder demostrar que un turno realmente cambi\'f3 la comprensi\'f3n \'97 pero "hubo alguna mutaci\'f3n" no es una definici\'f3n v\'e1lida de avance (puede fabricarse creando conocimiento sin necesidad), y el cambio de `next_user_action.objetivo` tampoco lo es (es consecuencia del avance, no evidencia de \'e9l).\
+\
+Aplicaci\'f3n:\
+\
+`avanzaReal` se calcula comparando el grafo verdaderamente-antes contra el verdaderamente-despu\'e9s de ambas fases, sobre seis se\'f1ales verificables (incertidumbres materiales, autoridad elevada, correcci\'f3n/obsolescencia, suficiencia sem\'e1ntica, dimensiones pendientes, cobertura completa). Se registra para auditor\'eda (`turno.avance_evaluado`) \'97 nunca decide `coberturaCompleta` ni toca `protocoloEstado`.\
+\
+---\
+\
+# D-031 (Etapa 2)\
+\
+## Con el grafo activo, toda informaci\'f3n estructurada que consume el LLM proviene exclusivamente de una proyecci\'f3n oficial del grafo \'97 nunca de `priorContext`/`state.slots`.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+La s\'edntesis propuesta a un experto para confirmar deb\'eda derivar de la misma fuente de verdad que gobierna el resto de la conversaci\'f3n. Mantener `priorContext` como mecanismo paralelo para la s\'edntesis y el contexto entre gram\'e1ticas creaba dos representaciones del mismo conocimiento, con riesgo real de que una inferencia sin confirmar apareciera en la s\'edntesis con el mismo peso que una afirmaci\'f3n del experto.\
+\
+Aplicaci\'f3n:\
+\
+Bajo el flag, la s\'edntesis de la gram\'e1tica activa y el contexto de gram\'e1ticas anteriores se construyen desde el grafo (`conceptosDeGramatica`/`conceptosDeGramaticasAnteriores`), con autoridad y procedencia visibles. `priorContext` permanece intacto, sin cambios, bajo legacy o V2 sin grafo \'97 no fue eliminado del c\'f3digo, solo de ese camino.\
+\
+---\
+\
+# D-032 (Etapa 2)\
+\
+## Una incertidumbre hist\'f3rica se resuelve nombrando el concepto al que pertenece, nunca transcribiendo el id opaco de la incertidumbre.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+El LLM nunca genera el id de una incertidumbre \'97 solo se le ped\'eda que lo copiara de vuelta desde el prompt al resolverla, y ese patr\'f3n fall\'f3 de forma sistem\'e1tica y reproducible, confirmado con reintentos expl\'edcitos que mostraban el id correcto sin corregir el comportamiento. El mismo LLM manejaba sin error el id de concepto en cualquier otro campo del contrato.\
+\
+Aplicaci\'f3n:\
+\
+`incertidumbresResueltas`/`incertidumbresNoRelevantes` se resuelven por `sobreConcepto`; el backend encuentra la incertidumbre correspondiente. El id expl\'edcito de incertidumbre queda disponible solo como desambiguaci\'f3n, exigida por el sistema \'fanicamente cuando existe m\'e1s de una incertidumbre abierta sobre el mismo concepto \'97 nunca resuelto por heur\'edstica.\
+\
+---\
+\
+# D-033 (Etapa 2)\
+\
+## Corregir una s\'edntesis es una edici\'f3n dirigida sobre el texto vigente, nunca una regeneraci\'f3n completa.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Un E2E con corrector externo real mostr\'f3 que una gram\'e1tica necesit\'f3 40 rondas de correcci\'f3n \'97 no porque el experto exigiera tanto, sino porque cada correcci\'f3n, sin importar su tama\'f1o, regeneraba la s\'edntesis completa desde cero, reescribiendo tambi\'e9n frases que nunca se cuestionaron. La redacci\'f3n nueva en esas frases invitaba, a su vez, una correcci\'f3n nueva \'97 un ciclo que no converg\'eda por dise\'f1o, no por culpa del experto.\
+\
+Aplicaci\'f3n:\
+\
+Cuando existe una s\'edntesis vigente y una correcci\'f3n puntual sobre ella, el turno edita ese texto exclusivamente en lo que la correcci\'f3n pide \'97 nunca reformula por iniciativa propia lo que el experto no cuestion\'f3. Verificado en vivo contra el motor real: una correcci\'f3n de una frase produjo un texto id\'e9ntico en todo lo dem\'e1s.\
+\
+---\
+\
+# D-034 (Etapa 2)\
+\
+## El saludo inicial de una conversaci\'f3n nueva es un texto est\'e1tico de interfaz \'97 nunca pasa por el motor cognitivo.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+El kickoff de DESTINO llamaba al LLM y generaba un Turno real con un `mensajeExperto` sint\'e9tico (`"[Inicio del estado...]"`) antes de que el usuario escribiera nada \'97 la UI depend\'eda incorrectamente del motor cognitivo solo para mostrar un saludo fijo, violando el principio de que el primer mensaje del usuario debe ser el primer input real que recibe C\'edrculo.\
+\
+Aplicaci\'f3n:\
+\
+`build_bridge.js` intercepta `kickoffState()` exclusivamente para el primer estado de una sesi\'f3n genuinamente nueva y muestra el texto aprobado directamente \'97 cero llamada al LLM, cero Turno. Los kickoffs de las otras 4 gram\'e1ticas no cambian: siguen reflejando comprensi\'f3n real acumulada.\
+\
+---\
+\
+# D-035 (Etapa 2 \'97 correcci\'f3n de registro conversacional)\
+\
+## La primera versi\'f3n del Est\'e1ndar de Comunicaci\'f3n de C\'edrculo: C\'edrculo nunca anuncia que entendi\'f3 \'97 lo demuestra. El protagonista de cada frase es el experto, nunca C\'edrculo. La autoridad se deduce de que la observaci\'f3n sea correcta, nunca se anuncia.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Dos correcciones sucesivas de LEY 4 fallaron en vivo, de forma reproducible: primero una lista de vocabulario prohibido (el modelo evitaba las palabras se\'f1aladas pero sustitu\'eda otras igual de abstractas); despu\'e9s una autoevaluaci\'f3n en prosa gen\'e9rica ("\'bflo dir\'eda el experto?"), que el modelo ten\'eda presente en el prompt real (confirmado por SQLite) y aun as\'ed viol\'f3 dos veces seguidas, abriendo con un anuncio de haber entendido ("Es revelador...") y llenando el reencuadre con un sustantivo abstracto nuevo cada vez. La causa no era el vocabulario ni la ausencia de una regla \'97 era que el propio prompt demuestra, con sus propios ejemplos, la forma exacta que se intentaba prohibir en prosa: el molde "no ense\'f1as X, ense\'f1as Y" de LEY 3, y los ejemplos de PENSAR EN VOZ ALTA en MOVIMIENTOS ("creo que acabo de descubrir algo\'85"), que son en s\'ed mismos metacomentario. Los modelos de lenguaje imitan la forma de los ejemplos que reciben con m\'e1s fidelidad que obedecen una instrucci\'f3n abstracta sobre esa forma.\
+\
+Aplicaci\'f3n:\
+\
+C\'edrculo mantiene por completo su trabajo de interpretar, reencuadrar y validar (Leyes 2 y 3) \'97 eso no desaparece. Lo que se elimina es el metacomentario: cualquier frase cuyo sujeto gramatical es C\'edrculo pensando ("es revelador", "es fascinante", "lo que esto demuestra", "acabas de descubrir") en vez del experto y lo que hizo. La correcci\'f3n se aplic\'f3 en dos lugares del prompt compartido (`IDENTITY`, `AgoraPrompts.js`): LEY 4 se reformul\'f3 con este est\'e1ndar y un contraste Forma A/Forma B anclado a un caso real de prueba; el ejemplo de PENSAR EN VOZ ALTA en MOVIMIENTOS se corrigi\'f3 para demostrar la forma correcta en vez de la incorrecta.\
+\
+Criterio de cierre: no es la ausencia literal de ciertas frases. Es que el experto sienta que C\'edrculo lo entendi\'f3 sin que C\'edrculo lo anuncie \'97 verificado en vivo, no solo por inspecci\'f3n del prompt.\
+\
+---\
+\
+# D-036 (Etapa 2 \'97 correcci\'f3n de registro conversacional)\
+\
+## El Realizador Conversacional: la decisi\'f3n cognitiva y la redacci\'f3n de la frase final se separan en dos llamadas al LLM. Alcance inicial: solo gram\'e1tica DESTINO, solo estado EXPLORANDO, solo con el grafo activo.\
+\
+Estado:\
+\
+Congelado (alcance inicial). Extensi\'f3n a otras gram\'e1ticas/estados: no autorizada todav\'eda.\
+\
+Motivo:\
+\
+D-035 (Est\'e1ndar de Comunicaci\'f3n) se implement\'f3 dentro de la misma llamada que decide el contenido del turno, y fue insuficiente: verificado en vivo, 3 veces, contra el mismo caso real, con evidencia SQLite de que el prompt real s\'ed inclu\'eda el est\'e1ndar completo. Un experimento aislado \'97contenido cognitivo real ya producido por Capa 1, pasado a una llamada aparte sin IDENTITY, sin las 4 leyes, sin grafo y sin ning\'fan ejemplo negativo\'97 elimin\'f3 el metacomentario ("Es revelador...") en los 3 casos reales de prueba. La explicaci\'f3n: el modelo, al decidir y narrar en la misma generaci\'f3n, se desliza hacia narrar el descubrimiento en vez de solo exponerlo. Separar ambos trabajos en llamadas distintas resolvi\'f3 ese fen\'f3meno de forma consistente.\
+\
+El experimento tambi\'e9n revel\'f3 un segundo fen\'f3meno, independiente y no resuelto por esta decisi\'f3n: el registro l\'e9xico abstracto ("gobernanza", "arquitectura") sobrevivi\'f3 al aislamiento en 1 de los 3 casos. Evidencia insuficiente (un solo caso) para tratarlo como una causa confirmada \'97 queda registrado como l\'ednea de investigaci\'f3n abierta, no como parte del alcance de esta decisi\'f3n.\
+\
+Aplicaci\'f3n:\
+\
+Capa cognitiva (sin cambios de fondo \'97 IDENTITY, las 4 leyes, MOVIMIENTOS, el grafo, los contratos por estado siguen intactos) agrega, solo para DESTINO+EXPLORANDO+grafo, dos campos adicionales al contrato ya existente: `movimiento` y `observacion` \'97 el campo `mensaje` de siempre se sigue pidiendo igual (compatibilidad total con `validarContratoPorEstado`, sin tocarlo). El Realizador Conversacional es una segunda llamada, aislada, que recibe \'fanicamente `observacion` y la pregunta ya decidida (como contexto de cierre, nunca para redactarla \'97 eso sigue siendo `next_user_action.texto`, anexado por el sistema exactamente como antes). Si el Realizador falla por cualquier motivo, se conserva el `mensaje` de Capa 1 sin bloquear el turno \'97 nunca es una autoridad.\
+\
+Campo descartado del contrato antes de implementar: `ultimoMensajeExperto` (el mensaje verbatim del experto). Se evalu\'f3 como candidato para anclar vocabulario, pero el experimento que sostiene esta decisi\'f3n nunca lo incluy\'f3 y aun as\'ed funcion\'f3 \'97 sin evidencia de que hiciera falta, se excluy\'f3, seguiendo el principio de que cada capa recibe \'fanicamente lo m\'ednimo necesario para su responsabilidad.\
+\
+---\
+\
+# D-037 (Etapa 2 \'97 correcci\'f3n de registro conversacional)\
+\
+## El Realizador Conversacional deja de ser exclusivo de DESTINO: pasa a ser una capacidad transversal de las 5 gram\'e1ticas, siempre acotada a EXPLORANDO con el grafo activo.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+D-036 valid\'f3 el patr\'f3n en vivo, solo en DESTINO. Antes de extenderlo se revisaron expl\'edcitamente las 5 misiones (`GRAMATICA_DEFS`) buscando una necesidad funcional real de ampliar el contrato. Ninguna la tiene: el campo `observacion` es, por dise\'f1o, donde Capa 1 vuelca todo el contenido sustantivo de su misi\'f3n \'97 sea la estrella (DESTINO), lo t\'e1cito (DESTILAR), la creencia que debe morir (TRADUCIR), la experiencia irreversible (ASCENSO) o la voz interior (DAR VIDA) \'97 y la responsabilidad del Realizador (decirlo natural, sin metacomentario, protagonista=experto) es agn\'f3stica de dominio por construcci\'f3n. Caso revisado con atenci\'f3n particular: DAR VIDA proh\'edbe en su misi\'f3n anticipar el concepto ("no digas 'voz interior'") \'97 esa restricci\'f3n gobierna qu\'e9 escribe Capa 1 en `observacion`, no exige nada del Realizador, que de todos modos tiene prohibido introducir cualquier concepto que Capa 1 no haya puesto ah\'ed.\
+\
+Aplicaci\'f3n:\
+\
+`buildProtocoloBloqueExplorandoGrafo` deja de condicionar `movimiento`/`observacion` a `gramatica === 'destino'` \'97 se piden siempre, para las 5. El writer deja de condicionar la invocaci\'f3n del Realizador a la gram\'e1tica activa \'97 se invoca siempre que `grafoActivo` (EXPLORANDO + grafo), para cualquiera de las 5. `LISTO_PARA_SINTESIS` y `ESPERANDO_CONFIRMACION` quedan fuera de las 5 gram\'e1ticas por igual, sin excepci\'f3n \'97 ninguna evidencia recolectada los cubre.\
+\
+---\
+\
+# D-038 (previo al Alpha \'97 observabilidad m\'ednima)\
+\
+## Dos endpoints de diagn\'f3stico (`GET /sessions`, `GET /diagnostico/:sessionId`) m\'e1s `llmProvider`/`llmModel` en `GET /health`, construidos exclusivamente sobre repositorios y datos que ya exist\'edan.\
+\
+Estado:\
+\
+Congelado.\
+\
+Motivo:\
+\
+Antes del Alpha hac\'eda falta poder diagnosticar una conversaci\'f3n real sin entrar a SQLite a mano \'97 pero `/audit/:sessionId` result\'f3 estar construido sobre el pipeline legado (`OrchestratorService`/`PipelineApplicationService`), no sobre `InteraccionCognitivaWriter` (el camino real de `/grammar-turn` desde el Incremento 4): sus secciones "etapas"/"gates" aparecen vac\'edas para cualquier sesi\'f3n del Alpha, no por una falla, sino porque miden un camino que ya no se usa. `/events/:sessionId`, en cambio, s\'ed cubre todo lo necesario \'97 es la misma fuente que se us\'f3 manualmente, v\'eda SQLite, durante toda la correcci\'f3n de registro conversacional (D-035 a D-037). El \'fanico faltante real era: (a) no hab\'eda forma de listar sesiones, aunque `stateRepo.listSessions()`/`countSessions()` ya exist\'edan sin usar, y (b) nadie agregaba latencia/resultado por llamada LLM a partir de los timestamps que los eventos ya traen.\
+\
+Aplicaci\'f3n:\
+\
+`GET /sessions` reutiliza `stateRepo.listSessions()`/`load()` y `turnoRepo.countBySesion()`. `GET /diagnostico/:sessionId` deriva todo de `eventRepo.findBySesion()` (lo mismo que ya expone `/events`), emparejando cronol\'f3gicamente `llm.called` con el `llm.succeeded`/`llm.failed` siguiente del mismo `label` para calcular latencia \'97 las llamadas de una sesi\'f3n son siempre secuenciales, nunca concurrentes. Ninguna tabla, columna ni tipo de evento nuevo. `llmProvider`/`llmModel` en `/health` son la configuraci\'f3n de arranque ya resuelta, expuesta sin cambiarla.\
+\
+Expl\'edcitamente fuera de alcance: estos endpoints son herramientas de diagn\'f3stico interno, no una segunda API de negocio. El frontend de C\'edrculo (`circulo_v0_bridge.html`) no los consume ni debe llegar a consumirlos. No tienen autenticaci\'f3n, igual que el resto de esta API \'97 antes de exponer el backend en un dominio p\'fablico (despliegue del Alpha), evaluar si necesitan alguna restricci\'f3n de acceso m\'ednima, dado que `/sessions` permite enumerar todas las sesiones existentes sin conocer ning\'fan id de antemano.\
+\
+---\
+\
+# D-040 (previo al Alpha \'97 invariantes m\'ednimos, alcance acotado a prop\'f3sito)\
+\
+## Dos invariantes exclusivos del Alpha: (1) la Pol\'edtica nunca construye un contrato estructuralmente imposible; (2) ning\'fan contenido de la Capa Cognitiva llega al usuario sin pasar por el Realizador \'97 con la excepci\'f3n deliberada de edici\'f3n dirigida (D-033).\
+\
+Estado:\
+\
+Congelado. La separaci\'f3n formal de Conocimiento/Conversaci\'f3n/Proceso, la eliminaci\'f3n de `protocoloEstado` como concepto unificado y la promoci\'f3n del ritmo conversacional fuera del prompt quedan **expl\'edcitamente fuera** de esta decisi\'f3n \'97 son el alcance del ADR y el redise\'f1o posteriores, no del Alpha.\
+\
+Motivo:\
+\
+Un E2E real contra el backend p\'fablico mostr\'f3, en vivo, un turno de DESTINO donde la reconciliaci\'f3n resolvi\'f3 la \'faltima incertidumbre abierta antes de que construcci\'f3n armara su prompt \'97 el turno segu\'eda marcado `EXPLORANDO`, pero ya no quedaba ninguna dimensi\'f3n pendiente. El contrato le pidi\'f3 al generador un `next_user_action.objetivo` de una lista vac\'eda: estructuralmente irrespondible, no un problema de contenido. Los 3 intentos reales fallaron validaci\'f3n, se agotaron los reintentos, y como el Realizador solo corre cuando el contrato valida, el mensaje crudo de Capa 1 \'97con su registro sin filtrar\'97 lleg\'f3 al usuario. El fallback determinista para "cobertura ya completa" ya exist\'eda en `decidirProtocolo`, pero solo actuaba despu\'e9s de gastar la llamada, nunca antes de pedirla.\
+\
+Aplicaci\'f3n:\
+\
+Antes de construir el prompt, si `protocoloEstado` es `EXPLORANDO` con el grafo activo y ya no quedan dimensiones pendientes (despu\'e9s de reconciliaci\'f3n), el turno se trata como `LISTO_PARA_SINTESIS` desde el principio \'97 nunca se construye el contrato imposible, y de paso se ahorra un turno entero que antes se perd\'eda en una pregunta sin respuesta posible. El Realizador deja de ser exclusivo de `EXPLORANDO`: ahora corre tambi\'e9n sobre la s\'edntesis fresca de `LISTO_PARA_SINTESIS` y sobre la reacci\'f3n de `ESPERANDO_CONFIRMACION` \'97 ambos contratos piden ahora `observacion` adem\'e1s de `mensaje`. Edici\'f3n dirigida (`correccionPendiente && sintesisVigente`) nunca pide `observacion`, as\'ed que queda excluida por construcci\'f3n, no por una excepci\'f3n especial en el c\'f3digo: su garant\'eda de que ninguna frase no cuestionada cambia de redacci\'f3n se romper\'eda si una segunda llamada la reescribiera "natural" despu\'e9s de aplicada.\
+\
+Auditor\'eda relacionada, resuelta dentro de esta misma decisi\'f3n: se investig\'f3 si la s\'edntesis confirmada funciona como segunda fuente de verdad para el pipeline downstream. No es el caso \'97 `protocoloSintesisVigente` se descarta (`null`) en el mismo commit que registra un avance real, y `ComprensionIntelligence` (primera etapa del pipeline downstream) lee `slots`, que bajo el grafo activo ya es una proyecci\'f3n pura de este \'97 nunca el texto de s\'edntesis. La s\'edntesis confirmada es una proyecci\'f3n descartable, no un artefacto persistente.\
+\
+---\
+\
+# D-041 (previo al Alpha \'97 correcci\'f3n de los dos hallazgos visibles del primer E2E p\'fablico)\
+\
+## Dos correcciones m\'ednimas y acotadas: (1) el saludo est\'e1tico de DESTINO (D-034) vuelve a mostrarse en una sesi\'f3n genuinamente nueva, sin ninguna llamada al backend; (2) un turno bajo EXPLORANDO cuyo propio delta completa la \'faltima dimensi\'f3n pendiente ya no anexa la pregunta de confirmaci\'f3n de una s\'edntesis que ese turno nunca propuso.\
+\
+Estado:\
+\
+Congelado. Ninguna de las dos toca la separaci\'f3n formal de Conocimiento/Conversaci\'f3n/Proceso, ni `protocoloEstado` como concepto unificado \'97 eso sigue siendo del ADR y el redise\'f1o posteriores, nunca de esta decisi\'f3n.\
+\
+Motivo:\
+\
+El primer E2E completo desde la URL p\'fablica del Alpha (las 5 gram\'e1ticas, recorridas desde el frontend real, no por curl) confirm\'f3 que el pipeline downstream funciona de punta a punta, y encontr\'f3 exactamente los dos hallazgos que esta decisi\'f3n corrige \'97 clasificados, por acuerdo previo, como integraci\'f3n/frontend el primero y motor conversacional el segundo, ninguno bloqueante para el resto del recorrido.\
+\
+(1) D-034 (saludo est\'e1tico de sesi\'f3n nueva) nunca se hab\'eda visto fallar porque toda validaci\'f3n previa, en este mismo proyecto, us\'f3 el bot\'f3n "Iniciar de nuevo" para arrancar sesiones \'97 un camino que ya pasaba por el bridge cargado. Una recarga genuina de la p\'e1gina, en cambio, ejecuta la invocaci\'f3n diferida del kickoff (`window.__CIRCULO_KICKOFF_DIFERIDO()`) usando la referencia CRUDA a la funci\'f3n original de `circulo_v0.html`, capturada antes de que el bridge existiera \'97 evitando por completo el wrapper `window.kickoffState` que D-034 instala. El resultado: un POST /grammar-turn real y un costo de LLM para mostrar lo que deb\'eda ser un saludo fijo, sin que el bug se viera nunca como una fuga a Anthropic (`callAI` s\'ed segu\'eda bien interceptado).\
+\
+(2) Un turno de DESTINO bajo `EXPLORANDO`, con una dimensi\'f3n pendiente antes de empezar (D-040 no lo redirige: el generador ve un contrato `EXPLORANDO` real), puede completar esa \'faltima dimensi\'f3n con su propio `conceptosNuevos` de este mismo turno. `decidirProtocolo` (`ProgresoConversacionalPolicy.js`, sin tocar) detecta cobertura completa y cae, correctamente, en su rama defensiva `COBERTURA_COMPLETADA` \'97 pero esa rama fuerza un `next_user_action` tipo "confirmar" que asume que ya existe una s\'edntesis propuesta. Bajo el grafo vivo, despu\'e9s de D-040, esa rama solo se alcanza para el caso en que la cobertura se complet\'f3 CON el contenido de este turno \'97 nunca hay ninguna s\'edntesis todav\'eda. La pregunta "\'bfesta s\'edntesis representa lo que quieres ense\'f1ar?" se anexaba a un mensaje que nunca propuso ninguna.\
+\
+Aplicaci\'f3n:\
+\
+(1) `build_bridge.js`: la invocaci\'f3n diferida del kickoff pasa de `window.__CIRCULO_KICKOFF_DIFERIDO()` a `window.kickoffState()` \'97 la misma referencia que usa "Iniciar de nuevo", ya interceptada por el wrapper de D-034. Cambio de una sola l\'ednea, exclusivo del artefacto generado; `circulo_v0.html` no se toca.\
+\
+(2) `InteraccionCognitivaWriter.js`, dentro de `decidirInteraccion`, inmediatamente despu\'e9s de invocar `decidirProtocolo`: si el grafo est\'e1 activo, el evento es `COBERTURA_COMPLETADA` y el `next_user_action` vino de la rama `'fallback'` (nunca del generador), se descarta antes de que `componerMensajeFinal` lo anexe. `ProgresoConversacionalPolicy.js` no se modifica \'97 la correcci\'f3n vive enteramente en el llamador, con una guarda de grafo activo que la vuelve un no-op bajo el camino legacy. El estado avanza igual a `LISTO_PARA_SINTESIS`: el turno siguiente propone la s\'edntesis real bajo ese contrato, con su propia confirmaci\'f3n v\'e1lida un turno despu\'e9s \'97 nunca se pierde el avance, solo se evita preguntar por algo que todav\'eda no existe.\
+\
+Regresi\'f3n: la correcci\'f3n (1) rompi\'f3, de forma esperada, tres pruebas existentes que hab\'edan codificado sin querer el comportamiento defectuoso (el kickoff de sesi\'f3n nueva S\'cd llamaba a /grammar-turn) como si fuera el comportamiento correcto \'97 `test_bridge_startup_kickoff_order.js`, `test_bridge_header_sync_order.js` y `test_bridge_confirmacion_no_render.js` se actualizaron para reflejar el arranque corregido (cero llamadas de red en el saludo est\'e1tico), verificado retrocediendo la correcci\'f3n y confirmando que las tres vuelven a fallar sin ella. La correcci\'f3n (2) se cubre con `test_d041_confirmacion_prematura.js`, nuevo, verificado con el mismo m\'e9todo (falla sin la correcci\'f3n, pasa con ella) m\'e1s un tercer caso que confirma que el camino legacy no se ve afectado. Suite completa reejecutada tras ambas correcciones: mismo resultado que el baseline previo a D-041 (los dos scripts CLI de soporte y el \'fanico fallo preexistente y no relacionado, `test_nueva_sesion_cognitiva.js`).\
+\
+---\
+\
+# Regla Final\
+\
+Si una nueva propuesta contradice alguna decisi\'f3n de este documento,\
+\
+la carga de la prueba pertenece a quien propone el cambio.}

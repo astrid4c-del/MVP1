@@ -1,0 +1,326 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Light;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # C\'edrculo \'97 Architecture\
+\
+Versi\'f3n: 3.0\
+\
+Estado: Vivo\
+\
+\'daltima actualizaci\'f3n: 2026-07-20\
+\
+---\
+\
+# Objetivo\
+\
+Este documento explica c\'f3mo funciona internamente C\'edrculo: autoridades, responsabilidades, contratos, invariantes y flujo interno.\
+\
+No explica qu\'e9 es C\'edrculo a alto nivel \'97 eso pertenece a **SYSTEM_MAP.md**.\
+\
+No explica la historia ni el porqu\'e9 de cada decisi\'f3n \'97 eso pertenece a **DECISIONS.md**.\
+\
+No explica el roadmap ni el estado del repositorio \'97 eso pertenece a **MASTER_ROADMAP.md** y **CURRENT_STATE.md**.\
+\
+---\
+\
+# Principio Fundamental\
+\
+Toda la arquitectura gira alrededor de un \'fanico objeto.\
+\
+```\
+CognitiveState\
+```\
+\
+Todo lee del estado.\
+\
+La escritura NO es libre: est\'e1 restringida a una autoridad \'fanica por tipo de dato. Ver la tabla de Autoridades m\'e1s abajo.\
+\
+No existen m\'faltiples fuentes de verdad, y no existe ninguna ruta que pueda escribir el mismo dato por dos caminos distintos.\
+\
+**Etapa 2 (Grafo de Conocimiento vivo) no reemplaza este principio \'97 lo profundiza.** Bajo el flag `CIRCULO_KNOWLEDGE_GRAPH_ENABLED`, `state.knowledgeGraph` pasa a ser la fuente primaria de comprensi\'f3n conversacional; `state.slots` deja de ser un dato escrito directamente y se convierte en una proyecci\'f3n determin\'edstica del grafo. Ver la secci\'f3n dedicada m\'e1s abajo.\
+\
+---\
+\
+# Los tres modos de operaci\'f3n\
+\
+C\'edrculo tiene tres modos, gobernados por dos flags de arranque (`CIRCULO_PROGRESS_PROTOCOL_V2`, `CIRCULO_KNOWLEDGE_GRAPH_ENABLED`). Son mutuamente excluyentes en el sentido de autoridad: nunca dos de ellos deciden el mismo turno.\
+\
+| Modo | V2 | Grafo | Autoridad de cierre de gram\'e1tica | Fuente de slots |\
+|---|---|---|---|---|\
+| Legacy | OFF | OFF | `GatePolicy.evaluateGramatica` | Escritura directa v\'eda `SlotSynthesisPolicy` |\
+| V2 sin grafo | ON | OFF | `ProgresoConversacionalPolicy.decidirProtocolo` | Escritura directa v\'eda `SlotSynthesisPolicy` |\
+| V2 con grafo (Etapa 2) | ON | ON | `ProgresoConversacionalPolicy.decidirProtocolo`, alimentado por el grafo | Proyecci\'f3n pura del grafo (`GrafoProyeccion.proyectarSlots`) |\
+\
+`CIRCULO_KNOWLEDGE_GRAPH_ENABLED=true` con `CIRCULO_PROGRESS_PROTOCOL_V2=false` es una combinaci\'f3n inv\'e1lida \'97 el bootstrap la rechaza expl\'edcitamente al arrancar.\
+\
+---\
+\
+# Autoridades (qui\'e9n decide qu\'e9)\
+\
+| Autoridad sobre | Componente | Notas |\
+|---|---|---|\
+| Estado y lifecycle | `CognitiveState` + `CognitiveStateService` | Carga, versiona, persiste. No decide contenido. |\
+| Historia conversacional | `Turno` | El transcript deriva exclusivamente de Turnos \'97 nunca de eventos ni del estado actual. |\
+| Cierre de una gram\'e1tica (legacy) | `GatePolicy.evaluateGramatica` | Requiere slots completos Y `parsed[gramatica_completo]===true`. Nunca se invoca bajo V2 \'97 perdi\'f3 toda funci\'f3n operativa ah\'ed. |\
+| Cierre de una gram\'e1tica (V2, con o sin grafo) | `ProgresoConversacionalPolicy.decidirProtocolo` | \'danica autoridad bajo V2. Bajo grafo activo, recibe `coberturaCompleta` calculada desde el grafo, no desde presencia de slots. |\
+| S\'edntesis de un valor de slot (legacy / V2 sin grafo) | `SlotSynthesisPolicy.sintetizarSlot` | Funci\'f3n pura, "\'faltimo aporte no vac\'edo gana." |\
+| Proyecci\'f3n de slots (V2 con grafo) | `GrafoProyeccion.proyectarSlots` | Determin\'edstica, sin LLM, derivada del grafo completo \'97 nunca del delta de un turno. `SlotSynthesisPolicy` no se usa en este modo. |\
+| Mutaci\'f3n del grafo \'97 comprensi\'f3n constructiva | `GrafoConocimientoPolicy.aplicarDelta` | Crea/actualiza/obsoleta conceptos y relaciones, crea incertidumbres nuevas. Nunca cierra una incertidumbre hist\'f3rica. |\
+| Mutaci\'f3n del grafo \'97 reconciliaci\'f3n hist\'f3rica | `GrafoConocimientoPolicy.aplicarDeltaReconciliacion` | Resuelve/desmaterializa incertidumbres existentes, confirma autoridad de conceptos existentes. Nunca crea nada. Capacidades disjuntas de `aplicarDelta` \'97 ver m\'e1s abajo. |\
+| Materialidad (qu\'e9 activa la reconciliaci\'f3n) | `GrafoProyeccion.incertidumbresRelevantesAbiertas` + `.inferenciasMaterialesActivas` | Estructural: deriva de si resolver el elemento puede cambiar la suficiencia sem\'e1ntica de la gram\'e1tica activa. |\
+| S\'edntesis de una gram\'e1tica (V2 con grafo) | `AgoraPrompts.buildProtocoloBloqueSintesisGrafo` | Deriva del subgrafo \'97 nunca de `priorContext`. Corrige mediante edici\'f3n dirigida (ver m\'e1s abajo), nunca regenerando desde cero. |\
+| Escritura de slots can\'f3nicos (legacy / V2 sin grafo) | `InteraccionCognitivaWriter` | \'danico escritor. `POST /grammar-turn` es la \'fanica ruta HTTP capaz de alcanzarlo. |\
+| Procesamiento de una interacci\'f3n | `InteraccionCognitivaWriter.procesar()` | At\'f3mico, idempotente (por `turnoClienteId`), serializado por sesi\'f3n. Bajo grafo activo, ejecuta hasta dos transacciones por turno \'97 ver "Dos fases por turno" abajo. |\
+| Gram\'e1tica activa (progresi\'f3n) | `state.gramaticaActiva` | Campo can\'f3nico del backend en los tres modos. |\
+| Reconstrucci\'f3n de una sesi\'f3n | `SessionHydrator` | Puramente de lectura. |\
+| Solicitud de downstream | Outbox durable (`SqliteDownstreamOutboxRepository`) | Sin cambios en Etapa 2. |\
+| Ejecuci\'f3n de downstream | `PipelineDownstreamDispatcher` | Sin cambios en Etapa 2. |\
+| Auditor\'eda | Event Log | Ver Invariantes \'97 ahora tres familias, no dos. |\
+\
+---\
+\
+# El Grafo de Conocimiento vivo (Etapa 2, bajo CIRCULO_KNOWLEDGE_GRAPH_ENABLED)\
+\
+## Por qu\'e9 existe\
+\
+C\'edrculo pod\'eda capturar informaci\'f3n correcta y aun as\'ed conversar mal: preguntas infinitas, ninguna sensaci\'f3n de avance real, reapertura de temas ya resueltos, respuestas sin direcci\'f3n clara, avance forzado por cantidad de turnos, inferencias del sistema tratadas como conocimiento confirmado. La causa ra\'edz era que el estado central eran 16 campos de texto plano ("cobertura de slots"), sin ninguna representaci\'f3n de qu\'e9 se sabe con certeza, qu\'e9 sigue siendo incierto, o qui\'e9n lo dijo \'97 el experto o el propio sistema.\
+\
+## El objeto central\
+\
+`state.knowledgeGraph`: conceptos (con `tipo`, `descripcion`, `procedencia`, `autoridad: experto|inferido`, `activo`), relaciones, e incertidumbres (`sobreConceptos`, `preguntaQueLaResolveria`, `relevante`, `resuelta`). Nunca nulo \'97 una sesi\'f3n nueva arranca con un grafo vac\'edo v\'e1lido.\
+\
+`state.knowledgeGraphReconstruido` es un campo separado, propiedad exclusiva de `ComprensionIntelligence` (downstream, post-Dar-Vida) \'97 nunca colisiona con el grafo vivo conversacional. `hasKnowledgeGraph` en los DTOs sigue derivando de este segundo campo, preservando su significado hist\'f3rico.\
+\
+## Dos fases por turno (D-028)\
+\
+Cada turno de EXPLORANDO bajo grafo activo puede ejecutar hasta dos transacciones SQLite independientes:\
+\
+1. **Reconciliaci\'f3n hist\'f3rica** (opcional \'97 solo si hay incertidumbres materiales o inferencias materiales abiertas sobre la gram\'e1tica activa). Recibe el mensaje del experto y esas incertidumbres/inferencias con su contexto. Solo puede resolver, desmaterializar o confirmar autoridad \'97 nunca crea conceptos, relaciones ni incertidumbres nuevas, y no tiene mecanismo de id temporal (estructuralmente no puede referenciar nada creado en el turno actual). No produce mensaje conversacional.\
+2. **Comprensi\'f3n constructiva**, sobre el grafo ya actualizado por la fase anterior. Crea/actualiza/obsoleta conceptos, crea relaciones e incertidumbres nuevas, asigna autoridad inicial honesta por procedencia (afirmaci\'f3n expl\'edcita del experto \uc0\u8594  `experto`; interpretaci\'f3n de C\'edrculo \u8594  `inferido`). Nunca resuelve una incertidumbre hist\'f3rica.\
+\
+Un fallo en una fase nunca revierte ni bloquea a la otra (D-028).\
+\
+## Materialidad (D-029)\
+\
+Una incertidumbre o inferencia activa la reconciliaci\'f3n \'fanicamente si resolverla puede cambiar la suficiencia sem\'e1ntica de la gram\'e1tica activa \'97 nunca por su mera existencia. Una incertidumbre `relevante:false` o una inferencia sobre una dimensi\'f3n ya satisfecha por autoridad experta no bloquea ni activa nada.\
+\
+## Suficiencia sem\'e1ntica y cierre\
+\
+`sufSemantica`: cada dimensi\'f3n de `SLOTS_BY_GRAMATICA` tiene al menos un concepto activo con `autoridad:experto`. Una inferencia sin confirmar nunca satisface, por s\'ed sola, una dimensi\'f3n.\
+\
+`dimensionesPendientes` = dimensiones sin suficiencia sem\'e1ntica \uc0\u8746  dimensiones con incertidumbres materiales abiertas. `coberturaCompleta` \u10234  `dimensionesPendientes.length === 0`. `ProgresoConversacionalPolicy` no cambi\'f3 \'97 solo cambi\'f3 de d\'f3nde recibe estas dos se\'f1ales.\
+\
+## Tres fotograf\'edas del estado, por turno\
+\
+- **Verdaderamente-antes**: el grafo tal como lleg\'f3 al turno, antes de cualquier fase. Solo se usa para medir `avanzaReal` (diagn\'f3stico).\
+- **Post-reconciliaci\'f3n**: lo que la fase de construcci\'f3n realmente vio y contra lo que se valida `next_user_action.objetivo`.\
+- **Verdaderamente-despu\'e9s**: el grafo tras ambas fases. Gobierna `coberturaCompleta`, la siguiente acci\'f3n y el cierre \'97 nunca una fotograf\'eda anterior.\
+\
+## `avanzaReal` (D-030)\
+\
+Diagn\'f3stico determinista, nunca autoridad de cierre. Compara la fotograf\'eda verdaderamente-antes contra la verdaderamente-despu\'e9s sobre seis se\'f1ales: disminuci\'f3n de incertidumbres materiales, autoridad elevada (`inferido\uc0\u8594 experto`), correcci\'f3n u obsolescencia de un concepto relevante, aumento de suficiencia sem\'e1ntica, disminuci\'f3n de dimensiones pendientes, `coberturaCompleta` pasando de falso a verdadero. Se registra v\'eda el evento `turno.avance_evaluado` \'97 nunca decide nada por s\'ed mismo.\
+\
+## S\'edntesis y contexto entre gram\'e1ticas (D-031)\
+\
+Con el grafo activo, la s\'edntesis de la gram\'e1tica activa y el contexto de gram\'e1ticas anteriores se construyen desde el grafo (`GrafoProyeccion.conceptosDeGramatica` / `.conceptosDeGramaticasAnteriores`), con autoridad y procedencia visibles para el LLM \'97 nunca desde `priorContext`/`state.slots`. `priorContext` sigue existiendo, sin cambios, para legacy y V2 sin grafo.\
+\
+## Resoluci\'f3n de incertidumbre por concepto (D-032)\
+\
+`incertidumbresResueltas`/`incertidumbresNoRelevantes` se identifican por `sobreConcepto` (el mismo id-space de concepto que el LLM ya maneja en el resto del contrato) \'97 nunca por el id opaco de la incertidumbre, que el LLM no genera y no logra transcribir con fiabilidad. El id expl\'edcito de incertidumbre sigue existiendo como mecanismo de desambiguaci\'f3n, exigido por el sistema \'fanicamente cuando hay m\'e1s de una incertidumbre abierta sobre el mismo concepto.\
+\
+## Edici\'f3n dirigida de s\'edntesis (D-033)\
+\
+Cuando existe una s\'edntesis vigente y una correcci\'f3n puntual sobre ella, el turno de `LISTO_PARA_SINTESIS` edita ese texto exclusivamente en lo que la correcci\'f3n pide \'97 nunca regenera desde el subgrafo. Verificado en vivo: una correcci\'f3n de una frase deja el resto del p\'e1rrafo id\'e9ntico, palabra por palabra.\
+\
+## Bienvenida est\'e1tica (D-034)\
+\
+El primer mensaje de una sesi\'f3n nueva es un texto fijo, mostrado por `build_bridge.js` sin pasar por `callAI`/`POST /grammar-turn` \'97 cero costo de LLM, cero Turno sint\'e9tico. Aplica a los tres modos por igual (es una decisi\'f3n de interfaz, no del motor cognitivo). Los kickoffs de las otras 4 gram\'e1ticas no cambiaron.\
+\
+---\
+\
+# Los dos flujos internos\
+\
+## Flujo A \'97 Turno de gram\'e1tica (Modelo Agora, Destino a Dar Vida)\
+\
+```\
+POST /grammar-turn\
+        \uc0\u8595 \
+InteraccionCognitivaWriter.procesar()\
+        \uc0\u8595 \
+   [si grafo activo y hay incertidumbres/inferencias materiales]\
+   Fase A: reconciliaci\'f3n hist\'f3rica (transacci\'f3n propia)\
+        \uc0\u8595 \
+   LLMService.call()  (comprensi\'f3n constructiva)\
+        \uc0\u8595 \
+   [grafo activo] GrafoConocimientoPolicy.aplicarDelta()\
+   [sin grafo]    SlotSynthesisPolicy.sintetizarSlot()  (por cada slot aportado)\
+        \uc0\u8595 \
+   [V2] ProgresoConversacionalPolicy.decidirProtocolo()\
+   [legacy] GatePolicy.evaluateGramatica()\
+        \uc0\u8595 \
+  Turno + CognitiveState (commit at\'f3mico, fase B)\
+        \uc0\u8595 \
+ (si el cierre real corresponde a Dar Vida) \uc0\u8594  Outbox: downstream.requested\
+```\
+\
+Este flujo NUNCA pasa por `OrchestratorService`, `AgoraStages` ni `PipelineApplicationService`. Esos componentes no son alcanzables desde `/grammar-turn`.\
+\
+## Flujo B \'97 Downstream (Inferencia a Blueprint, una sola vez por conversaci\'f3n)\
+\
+```\
+downstream.requested (outbox)\
+        \uc0\u8595 \
+PipelineDownstreamDispatcher._intentarReclamarYEjecutar()\
+        \uc0\u8595 \
+   outboxRepo.reclamar()  (claim at\'f3mico SQL)\
+        \uc0\u8595 \
+PipelineApplicationService.runFromAgora(sesionId, \{idempotencyKey\})\
+        \uc0\u8595 \
+   OrchestratorService.run()  \uc0\u8594   AgoraStages.execute() por etapa\
+        \uc0\u8595 \
+Inferencia \uc0\u8594  Opciones \u8594  Arquitectura \u8594  Evidencia \u8594  Forma \u8594  Desarrollo \u8594  Bonus \u8594  Blueprint\
+        \uc0\u8595 \
+  CognitiveState (commit) + downstream.completed\
+```\
+\
+Sin cambios en Etapa 2. `runFromAgora()` solo LEE `state.slots` \'97 nunca los sintetiza ni acepta una versi\'f3n enviada por el cliente. Bajo grafo activo, `state.slots` sigue siendo el mismo shape plano de siempre \'97 solo su origen cambi\'f3.\
+\
+`AgoraStages.js` solo contiene los executors de las 8 etapas downstream. El executor de las 5 gram\'e1ticas (`gramaticaExecutor`) fue eliminado \'97 no existe ning\'fan camino que lo alcance.\
+\
+---\
+\
+# Invariantes\
+\
+- **Un solo escritor de slots** \'97 `InteraccionCognitivaWriter`, exclusivamente. Ninguna API alternativa existe. Razonamiento: `DECISIONS.md`, D-021.\
+\
+- **La garant\'eda de downstream es "al menos una vez" sobre el efecto externo, nunca "exactamente una vez."** Motivo: `DECISIONS.md`, D-024.\
+\
+- **`pipeline.completed` no implica \'e9xito.** `downstream.completed` es el \'fanico evento que representa \'e9xito del downstream durable. Motivo: `DECISIONS.md`, D-025.\
+\
+- **El cliente nunca transporta autoridad cognitiva.** Motivo: `DECISIONS.md`, D-023.\
+\
+- **`circulo_v0.html` y `circulo_e2e.html` son baseline inmutable.** Nunca se editan. Cada regeneraci\'f3n de `circulo_v0_bridge.html` verifica el MD5 del baseline antes y despu\'e9s.\
+\
+- **Las dependencias siempre apuntan hacia abajo.** Policies nunca llaman a la API. Contratos nunca llaman al LLM. Schemas nunca llaman a Persistencia.\
+\
+- **El grafo es la \'fanica fuente de verdad bajo el flag \'97 ninguna proyecci\'f3n escribe sobre \'e9l.** `GrafoProyeccion.js` es exclusivamente de lectura; toda mutaci\'f3n pasa por `GrafoConocimientoPolicy`. Motivo: D-027.\
+\
+- **Reconciliaci\'f3n y construcci\'f3n tienen permisos de escritura disjuntos.** Reconciliaci\'f3n nunca crea nada ni cierra algo del turno actual (imposibilidad estructural, no solo una regla). Motivo: D-028.\
+\
+- **`avanzaReal` nunca gobierna cierre.** Es diagn\'f3stico, registrado para auditor\'eda \'97 la \'fanica autoridad de cierre sigue siendo `ProgresoConversacionalPolicy` (V2) o `GatePolicy` (legacy). Motivo: D-030.\
+\
+- **Ning\'fan modo h\'edbrido dentro de `CIRCULO_KNOWLEDGE_GRAPH_ENABLED=true`.** Con el grafo activo, absolutamente ninguna rama construye contexto desde `state.slots`/`priorContext`. Motivo: D-031.\
+\
+---\
+\
+# Componentes en detalle\
+\
+## API (CognitivoApiServer)\
+\
+Capa HTTP m\'ednima. Sin l\'f3gica cognitiva propia. Sin cambios de superficie en Etapa 2 \'97 los tres modos comparten los mismos endpoints.\
+\
+Endpoints activos:\
+\
+- `POST /grammar-turn` \'97 un turno de una gram\'e1tica. \'danico endpoint que puede escribir slots.\
+- `POST /pipeline` \'97 inicia (`run`) o reanuda (`resume:true`, flujo HITL) el pipeline pre-Agora.\
+- `GET /session/:id` \'97 estado can\'f3nico persistido, lectura pura.\
+- `GET /session/:id/turnos` \'97 transcript paginado, lectura pura.\
+- `GET /session/:id/hydration` \'97 reconstrucci\'f3n completa v\'eda SessionHydrator, lectura pura.\
+- `POST /trace` \'97 observabilidad pura. No lee ni muta CognitiveState.\
+- `GET /state/:id`, `GET /events/:id`, `GET /audit/:id` \'97 lectura/depuraci\'f3n.\
+\
+## InteraccionCognitivaWriter\
+\
+Entrada: `\{sesionId, mensajeUsuario, turnoClienteId\}`.\
+\
+Bajo grafo activo, coordina hasta dos transacciones por turno (reconciliaci\'f3n + construcci\'f3n, ver arriba) en lugar de una. Bajo legacy/V2 sin grafo, sin cambios: una sola transacci\'f3n, s\'edntesis v\'eda `SlotSynthesisPolicy`.\
+\
+Garant\'edas sin cambios: idempotente por `turnoClienteId`; serializado por sesi\'f3n; at\'f3mico dentro de cada fase.\
+\
+## GrafoConocimientoPolicy\
+\
+Dos funciones puras, sin repositorios, sin HTTP: `aplicarDelta` (construcci\'f3n) y `aplicarDeltaReconciliacion` (hist\'f3rica). Ambas validan el delta completo contra el estado resultante antes de aplicar nada \'97 atomicidad interna, no solo transaccional.\
+\
+## GrafoProyeccion\
+\
+Funciones puras de lectura sobre el grafo: `proyectarSlots`, `sufSemantica`, `dimensionesPendientes`, `coberturaCompleta`, `incertidumbresRelevantesAbiertas`, `inferenciasMaterialesActivas`, `conceptosDeGramatica`, `conceptosDeGramaticasAnteriores`, `avanzaReal`. Nunca escribe sobre el grafo.\
+\
+## SlotSynthesisPolicy\
+\
+Funci\'f3n pura: `sintetizarSlot(aportesHistoricos, estadoActual)`. Sigue siendo la autoridad de s\'edntesis bajo legacy y V2 sin grafo. No se usa bajo grafo activo \'97 reemplazada ah\'ed por `GrafoProyeccion.proyectarSlots`.\
+\
+## GatePolicy\
+\
+`evaluateGramatica(state, gramatica, parsed)`. Sigue siendo la \'fanica autoridad de cierre bajo legacy. Nunca se invoca bajo V2 (con o sin grafo) \'97 perdi\'f3 toda funci\'f3n operativa ah\'ed desde el Incremento 4 de la Etapa 1.\
+\
+## ProgresoConversacionalPolicy\
+\
+`decidirProtocolo(...)`. \'danica autoridad de cierre bajo V2. No cambi\'f3 en Etapa 2 \'97 solo cambi\'f3 de d\'f3nde recibe `coberturaCompleta`/`slotsFaltantes` cuando el grafo est\'e1 activo.\
+\
+## SessionHydrator\
+\
+Sin cambios en Etapa 2.\
+\
+## Outbox durable + PipelineDownstreamDispatcher\
+\
+Sin cambios en Etapa 2.\
+\
+## PipelineApplicationService / OrchestratorService / AgoraStages\
+\
+Sin cambios en Etapa 2. `runFromAgora` sigue leyendo `state.slots` sin saber si su origen fue el grafo o la escritura directa.\
+\
+## Inteligencias\
+\
+Comprensi\'f3n (KnowledgeGraph downstream, v\'eda `state.knowledgeGraphReconstruido`), Potenciaci\'f3n (EnhancedKnowledge), Contextual (ContextModel), Transformation (Modelo Agora). Sin cambios de responsabilidad \'97 solo se preserv\'f3 expl\'edcitamente la frontera con el grafo vivo conversacional (`state.knowledgeGraph` nunca colisiona con `state.knowledgeGraphReconstruido`).\
+\
+## LLMService\
+\
+Sin cambios en Etapa 2.\
+\
+## Persistencia\
+\
+Sin cambios en Etapa 2.\
+\
+## Eventos\
+\
+Tres familias, con sem\'e1ntica distinta:\
+\
+- `downstream.requested/claimed/started/completed/failed` \'97 ciclo de vida durable del downstream.\
+- `pipeline.requested/started/completed/failed` \'97 terminaci\'f3n del loop pre-Agora heredado, no implica \'e9xito.\
+- `reconciliacion.aplicada/fallida` + `turno.avance_evaluado` (Etapa 2) \'97 auditor\'eda de las dos fases del grafo vivo. Ninguno de los tres decide nada; son diagn\'f3stico.\
+\
+## Frontend / Bridge\
+\
+`circulo_v0.html` (baseline inmutable) \uc0\u8594  `circulo_v0_bridge.html` (generado por `build_bridge.js`). Rol sin cambios: capturar entrada, enviar `\{sessionId, turnoClienteId, mensajeUsuario\}` a `/grammar-turn`, mostrar la respuesta, proyectar el estado, restaurar tras refresh. Cero autoridad sobre slots, gram\'e1tica, Gate, cierre o downstream.\
+\
+**Nuevo en Etapa 2:** el bridge intercepta `kickoffState()` para mostrar la bienvenida est\'e1tica de una sesi\'f3n nueva sin llamar al LLM (D-034) \'97 la \'fanica excepci\'f3n a "el bridge nunca decide contenido conversacional", porque ese contenido espec\'edfico es fijo, no generado.\
+\
+---\
+\
+# Reglas de Dependencia\
+\
+```\
+Frontend\
+   \uc0\u8595 \
+API\
+   \uc0\u8595 \
+InteraccionCognitivaWriter  /  PipelineApplicationService\
+   \uc0\u8595 \
+Policies (GatePolicy, ProgresoConversacionalPolicy, GrafoConocimientoPolicy, GrafoProyeccion, SlotSynthesisPolicy, ...)\
+   \uc0\u8595 \
+CognitiveState / Turno\
+   \uc0\u8595 \
+Persistencia\
+```\
+\
+Ninguna capa inferior puede ser utilizada por una superior.\
+\
+---\
+\
+# Regla Arquitect\'f3nica Principal\
+\
+Si una nueva funcionalidad no puede ubicarse claramente dentro de una autoridad existente de la tabla de arriba, la arquitectura probablemente est\'e1 siendo violada \'97 o hace falta una decisi\'f3n expl\'edcita nueva antes de escribir c\'f3digo.\
+}
